@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { AlertCircle } from 'lucide-react-native';
 import { Button } from '@components/ui/button';
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 
 interface ErrorStateProps {
   message?: string;
@@ -12,15 +14,26 @@ export function ErrorState({
   message = 'Something went wrong',
   onRetry,
 }: ErrorStateProps) {
+  const theme = useTheme();
+
   return (
     <View className="flex-1 items-center justify-center px-8 py-16">
-      <View className="w-20 h-20 rounded-full bg-red-50 dark:bg-red-900/20 items-center justify-center mb-6">
-        <AlertCircle size={36} color="#D63031" />
+      <View
+        className="w-20 h-20 rounded-full items-center justify-center mb-6"
+        style={{ backgroundColor: theme.expenseTint }}
+      >
+        <AlertCircle size={36} color={theme.expense} />
       </View>
-      <Text className="text-xl font-bold text-gray-900 dark:text-gray-200 text-center mb-3">
+      <Text
+        className="text-center mb-3"
+        style={{ fontSize: 20, color: theme.textPrimary, fontFamily: fonts.heading }}
+      >
         Oops!
       </Text>
-      <Text className="text-sm text-gray-600 dark:text-gray-400 text-center mb-8 leading-5">
+      <Text
+        className="text-center mb-8"
+        style={{ fontSize: 14, lineHeight: 20, color: theme.textSecondary }}
+      >
         {message}
       </Text>
       {onRetry && (

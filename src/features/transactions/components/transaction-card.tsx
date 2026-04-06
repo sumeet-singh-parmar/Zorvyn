@@ -1,15 +1,13 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
-import { useColorScheme } from 'nativewind';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Trash2 } from 'lucide-react-native';
 import { CategoryIcon } from '@components/shared/category-icon';
 import { CurrencyText } from '@components/shared/currency-text';
 import { getRelativeTime } from '@core/utils/date';
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 import type { TransactionWithCategory } from '../types';
-
-const accentTheme = require('@theme/accent');
-const semantic = require('@theme/semantic');
 
 interface TransactionCardProps {
   transaction: TransactionWithCategory;
@@ -17,92 +15,63 @@ interface TransactionCardProps {
   onDelete: () => void;
 }
 
-const TYPE_ACCENT: Record<string, string> = {
-  income: semantic.income[600],
-  expense: semantic.expense[600],
-  transfer: semantic.transfer[600],
-};
-
-function DeleteAction() {
-  return (
-    <View className="bg-red-500 justify-center items-center px-6 rounded-2xl mr-4">
-      <Trash2 size={18} color="#FFFFFF" />
-      <Text className="text-white text-xs font-semibold mt-1">Delete</Text>
-    </View>
-  );
-}
-
-export function TransactionCard({
-  transaction,
-  onPress,
-  onDelete,
-}: TransactionCardProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+export function TransactionCard({ transaction, onPress, onDelete }: TransactionCardProps) {
+  const theme = useTheme();
   const { category } = transaction;
-  const accent = TYPE_ACCENT[transaction.type] ?? '#6B7280';
+
+  const typeColor: Record<string, string> = {
+    income: theme.income,
+    expense: theme.expense,
+    transfer: theme.transfer,
+  };
+  const accentColor = typeColor[transaction.type] ?? theme.textMuted;
 
   return (
     <Swipeable
-      renderRightActions={() => <DeleteAction />}
+      renderRightActions={() => (
+        <View style={{ backgroundColor: theme.expense, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24, borderRadius: 16, marginRight: 16 }}>
+          <Trash2 size={18} color="#FFFFFF" />
+          <Text style={{ color: '#FFFFFF', fontSize: 11, fontFamily: fonts.semibold, marginTop: 4 }}>Delete</Text>
+        </View>
+      )}
       onSwipeableOpen={(direction) => {
         if (direction === 'right') onDelete();
       }}
     >
-      <Pressable
-        onPress={onPress}
-        className="flex-row items-center mx-4 mb-1.5 rounded-2xl active:bg-gray-50 dark:active:bg-gray-800 border border-gray-100 dark:border-gray-800"
-        style={{
-          backgroundColor: isDark ? accentTheme.cardDark : accentTheme.cardLight,
-          paddingLeft: 14,
-          paddingRight: 16,
-          paddingVertical: 14,
-        }}
-      >
-        {/* Type accent bar */}
-        <View
-          style={{
-            width: 3,
-            height: 30,
-            borderRadius: 2,
-            backgroundColor: accent,
-            marginRight: 12,
-          }}
-        />
+      <View style={{ marginHorizontal: 16, marginBottom: 6, borderRadius: 16, backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border, overflow: 'hidden' }}>
+        <Pressable onPress={onPress} style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingLeft: 14, paddingRight: 16, paddingVertical: 14 }}>
+            {/* Accent bar */}
+            <View style={{ width: 3, height: 30, borderRadius: 2, backgroundColor: accentColor, marginRight: 12 }} />
 
-        {/* Category Icon */}
-        <CategoryIcon
-          iconName={category?.icon ?? 'circle'}
-          color={category?.color ?? '#9CA3AF'}
-          size="md"
-        />
+            {/* Category Icon */}
+            <CategoryIcon iconName={category?.icon ?? 'circle'} color={category?.color ?? theme.textMuted} size="md" />
 
-        {/* Details */}
-        <View className="flex-1 ml-3">
-          <Text
-            numberOfLines={1}
-            className="text-[15px] font-semibold text-gray-800 dark:text-gray-200"
-          >
-            {transaction.notes || (category?.name ?? 'Uncategorized')}
-          </Text>
-          <View className="flex-row items-center mt-0.5">
-            <Text className="text-[13px] text-gray-400 dark:text-gray-500">
-              {category?.name ?? 'Uncategorized'}
-            </Text>
-            <View className="w-[3px] h-[3px] rounded-full bg-gray-300 dark:bg-gray-600 mx-1.5" />
-            <Text className="text-[13px] text-gray-400 dark:text-gray-500">
-              {getRelativeTime(transaction.date)}
-            </Text>
+            {/* Details */}
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text numberOfLines={1} style={{ fontSize: 15, fontFamily: fonts.semibold, color: theme.textPrimary }}>
+                {transaction.notes || (category?.name ?? 'Uncategorized')}
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3 }}>
+                <Text style={{ fontSize: 13, fontFamily: fonts.body, color: theme.textMuted }}>
+                  {category?.name ?? 'Uncategorized'}
+                </Text>
+                <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: theme.textMuted, marginHorizontal: 6, opacity: 0.5 }} />
+                <Text style={{ fontSize: 13, fontFamily: fonts.body, color: theme.textMuted }}>
+                  {getRelativeTime(transaction.date)}
+                </Text>
+              </View>
+            </View>
+
+            {/* Amount */}
+            <CurrencyText
+              amount={transaction.amount}
+              type={transaction.type}
+              style={{ fontSize: 15, fontFamily: fonts.heading }}
+            />
           </View>
-        </View>
-
-        {/* Amount */}
-        <CurrencyText
-          amount={transaction.amount}
-          type={transaction.type}
-          className="text-[15px] font-bold"
-        />
-      </Pressable>
+        </Pressable>
+      </View>
     </Swipeable>
   );
 }

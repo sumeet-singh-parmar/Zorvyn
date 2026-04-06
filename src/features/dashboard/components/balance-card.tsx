@@ -26,6 +26,7 @@ interface BalanceCardProps {
   totalExpense: number;
   lastMonthIncome: number;
   lastMonthExpense: number;
+  onPress?: () => void;
 }
 
 function Blob({ size, startX, startY, color, delay }: {
@@ -107,7 +108,7 @@ function Blob({ size, startX, startY, color, delay }: {
   );
 }
 
-export function BalanceCard({ totalBalance, totalIncome, totalExpense, lastMonthIncome, lastMonthExpense }: BalanceCardProps) {
+export function BalanceCard({ totalBalance, totalIncome, totalExpense, lastMonthIncome, lastMonthExpense, onPress }: BalanceCardProps) {
   const theme = useTheme();
   const isDark = useIsDark();
   const { hue, saturation, lightness } = useThemeStore();
@@ -132,6 +133,7 @@ export function BalanceCard({ totalBalance, totalIncome, totalExpense, lastMonth
   const blob3 = hslToRgba(hue, saturation, lightness - 8, 1);
 
   return (
+    <Pressable onPress={onPress} style={({ pressed }) => ({ opacity: onPress && pressed ? 0.9 : 1, transform: [{ scale: onPress && pressed ? 0.98 : 1 }] })}>
     <View
       style={{
         borderRadius: 28,
@@ -238,7 +240,7 @@ export function BalanceCard({ totalBalance, totalIncome, totalExpense, lastMonth
                   style={{ fontSize: 18, fontFamily: fonts.amount, color: cardText, flexShrink: 1 }}
                 />
               )}
-              {!hidden && incomeChange !== 0 && (
+              {!hidden && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
                   {incomeChange >= 0 ? (
                     <TrendingUp size={12} color={theme.income} />
@@ -251,7 +253,7 @@ export function BalanceCard({ totalBalance, totalIncome, totalExpense, lastMonth
                 </View>
               )}
             </View>
-            {!hidden && lastMonthIncome > 0 && (
+            {!hidden && (
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ fontSize: 12, fontFamily: fonts.body, color: cardLabel, marginTop: 3 }}>
                 Compared to {formatCurrency(lastMonthIncome)} last month
               </Text>
@@ -275,7 +277,7 @@ export function BalanceCard({ totalBalance, totalIncome, totalExpense, lastMonth
                   style={{ fontSize: 18, fontFamily: fonts.amount, color: cardText, flexShrink: 1 }}
                 />
               )}
-              {!hidden && expenseChange !== 0 && (
+              {!hidden && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
                   {expenseChange <= 0 ? (
                     <TrendingDown size={12} color={theme.income} />
@@ -288,7 +290,7 @@ export function BalanceCard({ totalBalance, totalIncome, totalExpense, lastMonth
                 </View>
               )}
             </View>
-            {!hidden && lastMonthExpense > 0 && (
+            {!hidden && (
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ fontSize: 12, fontFamily: fonts.body, color: cardLabel, marginTop: 3 }}>
                 Compared to {formatCurrency(lastMonthExpense)} last month
               </Text>
@@ -298,5 +300,6 @@ export function BalanceCard({ totalBalance, totalIncome, totalExpense, lastMonth
       </View>
     </View>
     </View>
+    </Pressable>
   );
 }

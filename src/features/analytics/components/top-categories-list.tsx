@@ -1,123 +1,110 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { useColorScheme } from 'nativewind';
-import { Card } from '@components/ui/card';
 import { CategoryIcon } from '@components/shared/category-icon';
 import { CurrencyText } from '@components/shared/currency-text';
 import { ProgressBar } from '@components/ui/progress-bar';
+import { useTheme } from '@theme/use-theme';
+import { useThemeStore } from '@stores/theme-store';
+import { hslToHex, hslToRgba } from '@theme/hsl';
+import { fonts } from '@theme/fonts';
 import type { CategorySpending } from '../types';
-
-const accent = require('@theme/accent');
 
 interface TopCategoriesListProps {
   data: CategorySpending[];
 }
 
-const getRankColor = (index: number): string => {
-  switch (index) {
-    case 0:
-      return '#F59E0B';
-    case 1:
-      return '#A0AEC0';
-    case 2:
-      return '#D97706';
-    default:
-      return '#9CA3AF';
-  }
-};
-
-const getRankLabel = (index: number): string => {
-  switch (index) {
-    case 0:
-      return '🥇';
-    case 1:
-      return '🥈';
-    case 2:
-      return '🥉';
-    default:
-      return `${index + 1}.`;
-  }
-};
-
 export function TopCategoriesList({ data }: TopCategoriesListProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useTheme();
+  const { hue, saturation } = useThemeStore();
 
   if (data.length === 0) return null;
 
   const maxAmount = data[0]?.amount || 1;
 
+  // Rank colors derived from accent
+  const rankColors = [
+    hslToHex(hue, saturation * 0.7, 55),       // 1st -- bright accent
+    hslToHex((hue + 30) % 360, saturation * 0.4, 60),  // 2nd
+    hslToHex((hue + 60) % 360, saturation * 0.35, 55), // 3rd
+  ];
+
   return (
-    <Card className="overflow-hidden" style={{ backgroundColor: isDark ? accent.cardDark : accent.cardLight }}>
+    <View style={{ backgroundColor: theme.cardBg, borderRadius: 20, borderWidth: 1, borderColor: theme.border, overflow: 'hidden' }}>
       {/* Header */}
-      <View className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
-        <Text className="text-lg font-semibold text-gray-900 dark:text-gray-200">
+      <View style={{ paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: theme.border }}>
+        <Text style={{ fontSize: 17, fontFamily: fonts.heading, color: theme.textPrimary }}>
           Top Spending
         </Text>
-        <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        <Text style={{ fontSize: 13, fontFamily: fonts.body, color: theme.textMuted, marginTop: 4 }}>
           Your top {Math.min(data.length, 5)} categories
         </Text>
       </View>
 
       {/* List */}
-      <View className="divide-y divide-gray-100 dark:divide-gray-700">
-        {data.slice(0, 5).map((item, index) => {
-          const progress = item.amount / maxAmount;
-          const isTop = index === 0;
+      {data.slice(0, 5).map((item, index) => {
+        const progress = item.amount / maxAmount;
+        const isTop = index === 0;
+        const rankColor = index < 3 ? rankColors[index] : theme.textMuted;
 
-          return (
-            <View
-              key={item.categoryId}
-              className={`px-5 py-4 ${isTop ? 'bg-amber-50 dark:bg-amber-900/10' : ''}`}
-            >
-              {/* Top row: Rank, Icon, Category Name, Amount */}
-              <View className="flex-row items-center gap-3 mb-2">
-                {/* Rank Badge */}
-                <View className="w-8 h-8 rounded-full items-center justify-center" style={{
-                  backgroundColor: index < 3 ? getRankColor(index) + '20' : '#f3f4f6',
-                  borderWidth: 1,
-                  borderColor: index < 3 ? getRankColor(index) : '#e5e7eb',
-                }}>
-                  <Text className="text-sm font-bold" style={{ color: getRankColor(index) }}>
-                    {getRankLabel(index)}
-                  </Text>
-                </View>
-
-                {/* Category Icon & Name */}
-                <View className="flex-1 gap-0">
-                  <View className="flex-row items-center gap-2">
-                    <CategoryIcon iconName={item.icon} color={item.color} size="sm" />
-                    <Text className={`flex-1 font-semibold ${isTop ? 'text-base' : 'text-sm'} text-gray-900 dark:text-gray-200`}>
-                      {item.categoryName}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Amount */}
-                <View className="items-end">
-                  <CurrencyText
-                    amount={item.amount}
-                    className={`font-bold ${isTop ? 'text-base' : 'text-sm'} text-gray-900 dark:text-gray-200`}
-                  />
-                  <Text className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    {item.percentage}%
-                  </Text>
-                </View>
+        return (
+          <View
+            key={item.categoryId}
+            style={{
+              paddingHorizontal: 20,
+              paddingVertical: 14,
+              backgroundColor: isTop ? theme.tint : undefined,
+              borderTopWidth: index > 0 ? 1 : 0,
+              borderTopColor: theme.border,
+            }}
+          >
+            {/* Top row */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+              {/* Rank */}
+              <View style={{
+                width: 30,
+                height: 30,
+                borderRadius: 15,
+                backgroundColor: hslToRgba(hue, saturation * 0.3, index < 3 ? 50 : 40, 0.15),
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <Text style={{ fontSize: 13, fontFamily: fonts.black, color: rankColor }}>
+                  {index + 1}
+                </Text>
               </View>
 
-              {/* Progress bar */}
-              <View className="ml-11">
-                <ProgressBar
-                  progress={progress}
-                  color={item.color}
-                  height={6}
-                  animated={true}
+              {/* Category */}
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <CategoryIcon iconName={item.icon} color={item.color} size="sm" />
+                <Text style={{ flex: 1, fontFamily: fonts.semibold, fontSize: isTop ? 16 : 14, color: theme.textPrimary }}>
+                  {item.categoryName}
+                </Text>
+              </View>
+
+              {/* Amount */}
+              <View style={{ alignItems: 'flex-end' }}>
+                <CurrencyText
+                  amount={item.amount}
+                  style={{ fontSize: isTop ? 16 : 14, fontFamily: fonts.heading, color: theme.textPrimary }}
                 />
+                <Text style={{ fontSize: 12, fontFamily: fonts.body, color: theme.textMuted, marginTop: 2 }}>
+                  {item.percentage}%
+                </Text>
               </View>
             </View>
-          );
-        })}
-      </View>
-    </Card>
+
+            {/* Progress bar */}
+            <View style={{ marginLeft: 42 }}>
+              <ProgressBar
+                progress={progress}
+                color={index < 3 ? rankColors[index] : theme.accent500}
+                height={5}
+                animated={true}
+              />
+            </View>
+          </View>
+        );
+      })}
+    </View>
   );
 }

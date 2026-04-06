@@ -177,7 +177,7 @@ export function generateLightPalette(h: number, s: number, l: number): ThemePale
     accent900: hslToHex(H, S * 0.7, clamp(l - 38, 0, 100)),
 
     // Light surfaces: white + subtle tints
-    screenBg:    '#FFFFFF',
+    screenBg:    hslToHex(H, S * 0.08, 97),
     cardBg:      '#FFFFFF',
     surfaceBg:   hslToHex(H, S * 0.12, 97),
     elevatedBg:  hslToHex(H, S * 0.1, 94),

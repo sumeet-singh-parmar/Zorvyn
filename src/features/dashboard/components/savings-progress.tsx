@@ -3,11 +3,10 @@ import { View, Text, ScrollView, Pressable } from 'react-native';
 import { ProgressBar } from '@components/ui/progress-bar';
 import { formatCompactCurrency } from '@core/currency';
 import { Target } from 'lucide-react-native';
-import { useColorScheme } from 'nativewind';
 import { shadows } from '@theme/shadows';
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 import type { Goal } from '@core/models';
-
-const accent = require('@theme/accent');
 
 interface SavingsProgressProps {
   goals: Goal[];
@@ -15,24 +14,23 @@ interface SavingsProgressProps {
 }
 
 export function SavingsProgress({ goals, onPress }: SavingsProgressProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useTheme();
 
   if (goals.length === 0) {
     return (
       <View
         className="rounded-2xl p-4 items-center"
         style={{
-          backgroundColor: accent.tint,
+          backgroundColor: theme.tint,
           borderWidth: 1,
-          borderColor: accent.ring,
+          borderColor: theme.ring,
         }}
       >
-        <Target size={32} color={accent[500]} />
-        <Text className="text-sm font-semibold text-gray-800 dark:text-gray-200 mt-2">
+        <Target size={32} color={theme.accent500} />
+        <Text style={{ fontSize: 14, fontFamily: fonts.semibold, color: theme.textPrimary, marginTop: 8 }}>
           No savings goals yet
         </Text>
-        <Text className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
+        <Text style={{ fontSize: 12, fontFamily: fonts.body, color: theme.textSecondary, marginTop: 4, textAlign: 'center' }}>
           Create your first goal to start tracking progress
         </Text>
       </View>
@@ -41,7 +39,7 @@ export function SavingsProgress({ goals, onPress }: SavingsProgressProps) {
 
   return (
     <View>
-      <Text className="text-base font-bold text-gray-900 dark:text-gray-200 mb-3">
+      <Text style={{ fontSize: 16, fontFamily: fonts.heading, color: theme.textPrimary, marginBottom: 12 }}>
         Savings Goals
       </Text>
 
@@ -62,9 +60,9 @@ export function SavingsProgress({ goals, onPress }: SavingsProgressProps) {
               onPress={() => onPress(goal.id)}
               className="w-48 rounded-2xl p-4 mr-3 overflow-hidden"
               style={{
-                backgroundColor: isDark ? accent.cardDark : accent.cardLight,
+                backgroundColor: theme.cardBg,
                 borderWidth: 1,
-                borderColor: isDark ? accent[800] : accent[100],
+                borderColor: theme.border,
                 ...shadows.sm,
               }}
             >
@@ -72,13 +70,13 @@ export function SavingsProgress({ goals, onPress }: SavingsProgressProps) {
                 <View
                   className="rounded-full p-2"
                   style={{
-                    backgroundColor: goal.color ? `${goal.color}20` : accent.tint,
+                    backgroundColor: goal.color ? `${goal.color}20` : theme.tint,
                   }}
                 >
-                  <Target size={14} color={goal.color ?? accent[500]} />
+                  <Target size={14} color={goal.color ?? theme.accent500} />
                 </View>
                 <Text
-                  className="text-sm font-bold ml-2 flex-1 text-gray-900 dark:text-gray-200"
+                  style={{ fontSize: 14, fontFamily: fonts.heading, marginLeft: 8, flex: 1, color: theme.textPrimary }}
                   numberOfLines={1}
                 >
                   {goal.name}
@@ -89,15 +87,15 @@ export function SavingsProgress({ goals, onPress }: SavingsProgressProps) {
                 <ProgressBar
                   progress={progress}
                   height={8}
-                  color={goal.color ?? accent[500]}
+                  color={goal.color ?? theme.accent500}
                 />
               </View>
 
               <View className="flex-row justify-between items-center">
-                <Text className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                <Text style={{ fontSize: 12, fontFamily: fonts.semibold, color: theme.textSecondary }}>
                   {progressPercentage}%
                 </Text>
-                <Text className="text-xs text-gray-500 dark:text-gray-500">
+                <Text style={{ fontSize: 12, fontFamily: fonts.body, color: theme.textMuted }}>
                   {formatCompactCurrency(goal.current_amount, goal.currency_code)} / {formatCompactCurrency(goal.target_amount, goal.currency_code)}
                 </Text>
               </View>

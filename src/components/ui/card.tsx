@@ -1,9 +1,7 @@
 import React from 'react';
 import { View, Pressable, type ViewStyle } from 'react-native';
 import { shadows } from '@theme/shadows';
-import { useColorScheme } from 'nativewind';
-
-const accent = require('@theme/accent');
+import { useTheme } from '@theme/use-theme';
 
 interface CardProps {
   children: React.ReactNode;
@@ -18,8 +16,7 @@ export function Card({
   className = '',
   style,
 }: CardProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useTheme();
 
   if (onPress) {
     return (
@@ -29,7 +26,7 @@ export function Card({
         style={({ pressed }) => [
           {
             ...shadows.md,
-            backgroundColor: isDark ? accent.cardDark : accent.cardLight,
+            backgroundColor: theme.cardBg,
             opacity: pressed ? 0.95 : 1,
             transform: [{ scale: pressed ? 0.99 : 1 }],
           },
@@ -47,7 +44,7 @@ export function Card({
       style={[
         {
           ...shadows.md,
-          backgroundColor: isDark ? accent.cardDark : accent.cardLight,
+          backgroundColor: theme.cardBg,
         },
         style,
       ]}

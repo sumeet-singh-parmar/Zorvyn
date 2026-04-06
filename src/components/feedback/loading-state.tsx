@@ -6,14 +6,15 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-
-const accent = require('@theme/accent');
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 
 interface LoadingStateProps {
   message?: string;
 }
 
 export function LoadingState({ message }: LoadingStateProps) {
+  const theme = useTheme();
   const opacity = useSharedValue(0.5);
 
   useEffect(() => {
@@ -30,10 +31,18 @@ export function LoadingState({ message }: LoadingStateProps) {
 
   return (
     <View className="flex-1 items-center justify-center py-12">
-      <ActivityIndicator size="large" color={accent[500]} />
+      <ActivityIndicator size="large" color={theme.accent500} />
       {message && (
         <Animated.View style={animatedStyle}>
-          <Text className="text-sm text-gray-600 dark:text-gray-400 mt-4 text-center">
+          <Text
+            style={{
+              fontSize: 14,
+              fontFamily: fonts.body,
+              color: theme.textSecondary,
+              marginTop: 16,
+              textAlign: 'center',
+            }}
+          >
             {message}
           </Text>
         </Animated.View>

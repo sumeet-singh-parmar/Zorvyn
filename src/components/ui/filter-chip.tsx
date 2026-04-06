@@ -5,8 +5,8 @@ import { X } from 'lucide-react-native';
 import { Icon } from '@components/shared/icon-map';
 
 import { shadows } from '@theme/shadows';
-
-const accent = require('@theme/accent');
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 
 interface FilterChipProps {
   label: string;
@@ -23,6 +23,8 @@ export function FilterChip({
   onClear,
   icon,
 }: FilterChipProps) {
+  const theme = useTheme();
+
   const content = (
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
       {icon && (
@@ -31,7 +33,7 @@ export function FilterChip({
             width: 28,
             height: 28,
             borderRadius: 14,
-            backgroundColor: selected ? 'rgba(255,255,255,0.25)' : accent.tint,
+            backgroundColor: selected ? 'rgba(255,255,255,0.25)' : theme.tint,
             alignItems: 'center',
             justifyContent: 'center',
             marginRight: 7,
@@ -40,22 +42,22 @@ export function FilterChip({
           <Icon
             name={icon}
             size={14}
-            color={selected ? '#FFFFFF' : accent[500]}
+            color={selected ? theme.textOnAccent : theme.accent500}
           />
         </View>
       )}
       <Text
         style={{
           fontSize: 14,
-          fontWeight: '600',
-          color: selected ? '#FFFFFF' : '#374151',
+          fontFamily: fonts.semibold,
+          color: selected ? theme.textOnAccent : theme.textPrimary,
         }}
       >
         {label}
       </Text>
       {selected && onClear && (
         <Pressable onPress={onClear} style={{ marginLeft: 8 }}>
-          <X size={14} color="#FFFFFF" />
+          <X size={14} color={theme.textOnAccent} />
         </Pressable>
       )}
     </View>
@@ -65,14 +67,16 @@ export function FilterChip({
     return (
       <Pressable
         onPress={onPress}
-        className="rounded-full overflow-hidden self-start"
         style={({ pressed }) => ({
+          borderRadius: 9999,
+          overflow: 'hidden',
+          alignSelf: 'flex-start',
           opacity: pressed ? 0.8 : 1,
           ...shadows.accentSm,
         })}
       >
         <LinearGradient
-          colors={[accent.gradientStart, accent[500]]}
+          colors={[theme.gradientStart, theme.accent500]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{
@@ -92,13 +96,16 @@ export function FilterChip({
   return (
     <Pressable
       onPress={onPress}
-      className="rounded-full self-start bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
       style={({ pressed }) => ({
+        borderRadius: 9999,
+        alignSelf: 'flex-start',
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 10,
         borderWidth: 1.5,
+        borderColor: theme.border,
+        backgroundColor: theme.surfaceBg,
         opacity: pressed ? 0.7 : 1,
       })}
     >

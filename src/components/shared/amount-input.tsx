@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, TextInput } from 'react-native';
 import { getCurrencyInfo } from '@core/currency';
 import { useCurrencyStore } from '@stores/currency-store';
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 
 interface AmountInputProps {
   value: string;
@@ -16,6 +18,7 @@ export function AmountInput({
   currencyCode,
   autoFocus = true,
 }: AmountInputProps) {
+  const theme = useTheme();
   const defaultCurrency = useCurrencyStore((s) => s.currencyCode);
   const code = currencyCode ?? defaultCurrency;
   const { symbol } = getCurrencyInfo(code);
@@ -47,8 +50,8 @@ export function AmountInput({
         <Text
           style={{
             fontSize: symbolSize,
-            fontWeight: '700',
-            color: '#D1D5DB',
+            fontFamily: fonts.amount,
+            color: theme.textMuted,
             marginRight: 4,
           }}
         >
@@ -57,8 +60,8 @@ export function AmountInput({
         <TextInput
           style={{
             fontSize,
-            fontWeight: '700',
-            color: '#111827',
+            fontFamily: fonts.amount,
+            color: theme.textPrimary,
             padding: 0,
             margin: 0,
             flexShrink: 1,
@@ -68,7 +71,7 @@ export function AmountInput({
           value={value}
           onChangeText={handleChange}
           placeholder="0"
-          placeholderTextColor="#D1D5DB"
+          placeholderTextColor={theme.textMuted}
           autoFocus={autoFocus}
           maxLength={15}
         />
@@ -76,7 +79,7 @@ export function AmountInput({
       <View
         style={{
           height: 2,
-          backgroundColor: '#E5E7EB',
+          backgroundColor: theme.border,
           marginTop: 10,
           width: 100,
           borderRadius: 1,

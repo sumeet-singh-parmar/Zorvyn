@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, Pressable, LayoutChangeEvent } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
@@ -10,6 +12,12 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Plus } from 'lucide-react-native';
 import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react-native';
+import {
+  Home01Icon, Home02Icon,
+  TransactionHistoryIcon,
+  Analytics01Icon,
+  Setting07Icon,
+} from '@hugeicons/core-free-icons';
 import { useTheme, useIsDark } from '@theme/use-theme';
 import { useThemeStore } from '@stores/theme-store';
 import { hslToRgba } from '@theme/hsl';
@@ -58,7 +66,7 @@ export function GlassTabBarPreview({ tabs, activeIndex, onTabPress, onPlusPress 
 
   const borderColor = isDark
     ? hslToRgba(hue, saturation * 0.2, 40, 0.25)
-    : hslToRgba(hue, saturation * 0.15, 70, 0.3);
+    : hslToRgba(hue, saturation * 0.4, 75, 0.4);
 
   const glassShine = isDark
     ? ['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.02)', 'rgba(255,255,255,0)']
@@ -131,8 +139,8 @@ export function GlassTabBarPreview({ tabs, activeIndex, onTabPress, onPlusPress 
 
           {tabs.map((tab, index) => {
             const isActive = activeIndex === index;
-            const iconColor = isActive ? theme.accent400 : theme.tabInactiveIcon;
-            const textColor = isActive ? theme.accent300 : theme.tabInactiveIcon;
+            const iconColor = isActive ? theme.buttonBg : theme.tabInactiveIcon;
+            const textColor = isActive ? theme.buttonBg : theme.tabInactiveIcon;
 
             return (
               <Pressable
@@ -190,7 +198,7 @@ export function GlassTabBarPreview({ tabs, activeIndex, onTabPress, onPlusPress 
               top: 0, left: 0, right: 0, bottom: 0,
               backgroundColor: isDark
                 ? hslToRgba(hue, saturation * 0.3, 15, 0.5)
-                : hslToRgba(hue, saturation * 0.2, 90, 0.4),
+                : hslToRgba(hue, saturation * 0.5, 88, 0.8),
             }}
           />
           <Pressable
@@ -203,10 +211,69 @@ export function GlassTabBarPreview({ tabs, activeIndex, onTabPress, onPlusPress 
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <Plus size={24} color={theme.accent400} strokeWidth={2.5} />
+            <Plus size={24} color={isDark ? theme.accent400 : theme.buttonBg} strokeWidth={2.5} />
           </Pressable>
         </View>
       )}
+    </View>
+  );
+}
+
+/** Route-to-icon mapping for the real tab bar */
+const ROUTE_ICONS: Record<string, { icon: IconSvgElement; iconFilled: IconSvgElement }> = {
+  index:        { icon: Home01Icon, iconFilled: Home02Icon },
+  transactions: { icon: TransactionHistoryIcon, iconFilled: TransactionHistoryIcon },
+  analytics:    { icon: Analytics01Icon, iconFilled: Analytics01Icon },
+  settings:     { icon: Setting07Icon, iconFilled: Setting07Icon },
+};
+
+/**
+ * Real tab bar component for expo-router Tabs.
+ * Uses the same glass UI as GlassTabBarPreview.
+ */
+export function GlassTabBar({ state, descriptors, navigation, onPlusPress }: BottomTabBarProps & { onPlusPress?: () => void }) {
+  const insets = useSafeAreaInsets();
+  const bottomPad = insets.bottom > 0 ? insets.bottom : 16;
+
+  const tabs = state.routes.map((route) => {
+    const { options } = descriptors[route.key];
+    const icons = ROUTE_ICONS[route.name] ?? { icon: Home01Icon, iconFilled: Home01Icon };
+    return {
+      key: route.key,
+      label: options.title ?? route.name,
+      icon: icons.icon,
+      iconFilled: icons.iconFilled,
+    };
+  });
+
+  return (
+    <View
+      pointerEvents="box-none"
+      style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        paddingBottom: bottomPad,
+        paddingHorizontal: 16,
+      }}
+    >
+      <GlassTabBarPreview
+        tabs={tabs}
+        activeIndex={state.index}
+        onTabPress={(index) => {
+          const route = state.routes[index];
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+          if (state.index !== index && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        }}
+        onPlusPress={onPlusPress}
+      />
     </View>
   );
 }

@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView } from 'react-native';
-import { useColorScheme } from 'nativewind';
 import { AmountInput } from '@components/shared/amount-input';
 import { Button } from '@components/ui/button';
 import { SegmentedControl } from '@components/ui/segmented-control';
 import { CategoryPicker } from '@features/transactions/components/category-picker';
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 import type { Category, BudgetPeriod } from '@core/models';
-
-const accent = require('@theme/accent');
 
 interface BudgetFormProps {
   categories: Category[];
@@ -23,8 +22,7 @@ const periodMap: Record<string, BudgetPeriod> = {
 };
 
 export function BudgetForm({ categories, onSubmit, loading }: BudgetFormProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useTheme();
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [period, setPeriod] = useState('Monthly');
@@ -45,15 +43,28 @@ export function BudgetForm({ categories, onSubmit, loading }: BudgetFormProps) {
       <View className="px-4 pt-2">
         {/* Budget Limit */}
         <View className="mb-6">
-          <Text className="text-sm font-bold text-gray-900 dark:text-gray-200 mb-2">Budget Limit</Text>
-          <View className="rounded-2xl px-4 py-3" style={{ backgroundColor: isDark ? accent.surfaceDark : accent.surfaceLight }}>
+          <Text
+            className="text-sm mb-2"
+            style={{ color: theme.textPrimary, fontFamily: fonts.heading }}
+          >
+            Budget Limit
+          </Text>
+          <View
+            className="rounded-2xl px-4 py-3"
+            style={{ backgroundColor: theme.surfaceBg }}
+          >
             <AmountInput value={amount} onChangeText={setAmount} />
           </View>
         </View>
 
         {/* Period Selection */}
         <View className="mb-6">
-          <Text className="text-sm font-bold text-gray-900 dark:text-gray-200 mb-3">Period</Text>
+          <Text
+            className="text-sm mb-3"
+            style={{ color: theme.textPrimary, fontFamily: fonts.heading }}
+          >
+            Period
+          </Text>
           <SegmentedControl
             options={PERIOD_OPTIONS}
             selected={period}
@@ -63,8 +74,16 @@ export function BudgetForm({ categories, onSubmit, loading }: BudgetFormProps) {
 
         {/* Category Selection */}
         <View className="mb-6">
-          <Text className="text-sm font-bold text-gray-900 dark:text-gray-200 mb-3">Category</Text>
-          <View className="rounded-2xl p-4" style={{ backgroundColor: isDark ? accent.surfaceDark : accent.surfaceLight }}>
+          <Text
+            className="text-sm mb-3"
+            style={{ color: theme.textPrimary, fontFamily: fonts.heading }}
+          >
+            Category
+          </Text>
+          <View
+            className="rounded-2xl p-4"
+            style={{ backgroundColor: theme.surfaceBg }}
+          >
             <CategoryPicker
               categories={expenseCategories}
               selected={categoryId}
@@ -75,8 +94,14 @@ export function BudgetForm({ categories, onSubmit, loading }: BudgetFormProps) {
 
         {/* Error Message */}
         {error ? (
-          <View className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-3 mb-6">
-            <Text className="text-red-600 dark:text-red-400 text-sm font-medium text-center">
+          <View
+            className="rounded-2xl p-3 mb-6"
+            style={{ backgroundColor: theme.expenseTint }}
+          >
+            <Text
+              className="text-sm text-center"
+              style={{ color: theme.expense, fontFamily: fonts.medium }}
+            >
               {error}
             </Text>
           </View>
@@ -88,7 +113,7 @@ export function BudgetForm({ categories, onSubmit, loading }: BudgetFormProps) {
           onPress={handleSubmit}
           loading={loading}
           size="lg"
-          className="mb-6 bg-blue-500"
+          className="mb-6"
         />
       </View>
     </ScrollView>

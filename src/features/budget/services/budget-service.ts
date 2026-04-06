@@ -1,6 +1,9 @@
 import type { BudgetWithProgress } from '../types';
 
-const semantic = require('@theme/semantic');
+// Static semantic colors -- these are fixed (not accent-derived) so safe to import statically
+const INCOME_COLOR = '#00C48C';
+const EXPENSE_COLOR = '#FF6B6B';
+const WARNING_COLOR = '#FDCB6E';
 
 export function calculateSpendingVelocity(
   spent: number,
@@ -15,9 +18,9 @@ export function calculateSpendingVelocity(
 }
 
 export function getBudgetStatusColor(progress: number): string {
-  if (progress >= 0.9) return semantic.expense.DEFAULT;
-  if (progress >= 0.7) return semantic.warning.DEFAULT;
-  return semantic.income.DEFAULT;
+  if (progress >= 0.9) return EXPENSE_COLOR;
+  if (progress >= 0.7) return WARNING_COLOR;
+  return INCOME_COLOR;
 }
 
 export function getBudgetStatusLabel(progress: number): string {

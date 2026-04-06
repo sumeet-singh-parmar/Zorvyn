@@ -6,9 +6,7 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-import { useColorScheme } from 'nativewind';
-
-const accent = require('@theme/accent');
+import { useTheme } from '@theme/use-theme';
 
 interface SkeletonProps {
   width?: number | string;
@@ -23,8 +21,7 @@ export function Skeleton({
   borderRadius = 8,
   className = '',
 }: SkeletonProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useTheme();
   const opacity = useSharedValue(0.3);
 
   useEffect(() => {
@@ -46,7 +43,7 @@ export function Skeleton({
           width: width as number,
           height,
           borderRadius,
-          backgroundColor: isDark ? accent.surfaceDark : accent.surfaceLight,
+          backgroundColor: theme.surfaceBg,
         },
         animatedStyle,
       ]}

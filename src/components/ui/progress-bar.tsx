@@ -6,9 +6,8 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
-import { useColorScheme } from 'nativewind';
-
-const accent = require('@theme/accent');
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 
 interface ProgressBarProps {
   progress: number; // 0 to 1
@@ -21,11 +20,15 @@ interface ProgressBarProps {
   className?: string;
 }
 
-function getProgressColor(progress: number, customColor?: string): string {
+function getProgressColor(
+  progress: number,
+  theme: { expense: string; warning: string; income: string },
+  customColor?: string,
+): string {
   if (customColor) return customColor;
-  if (progress >= 0.9) return '#EF4444';
-  if (progress >= 0.7) return '#F59E0B';
-  return '#10B981';
+  if (progress >= 0.9) return theme.expense;
+  if (progress >= 0.7) return theme.warning;
+  return theme.income;
 }
 
 export function ProgressBar({
@@ -38,11 +41,10 @@ export function ProgressBar({
   animated = true,
   className = '',
 }: ProgressBarProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const resolvedTrackColor = trackColor ?? (isDark ? accent.surfaceDark : accent.surfaceLight);
+  const theme = useTheme();
+  const resolvedTrackColor = trackColor ?? theme.surfaceBg;
   const clampedProgress = Math.min(Math.max(progress, 0), 1);
-  const barColor = getProgressColor(clampedProgress, color);
+  const barColor = getProgressColor(clampedProgress, theme, color);
 
   const widthAnim = useSharedValue(0);
 
@@ -66,10 +68,24 @@ export function ProgressBar({
       {(showLabel || label) && (
         <View className="flex-row justify-between mb-1">
           {label && (
-            <Text className="text-xs text-gray-500 dark:text-gray-400">{label}</Text>
+            <Text
+              style={{
+                fontSize: 12,
+                fontFamily: fonts.body,
+                color: theme.textMuted,
+              }}
+            >
+              {label}
+            </Text>
           )}
           {showLabel && (
-            <Text className="text-xs font-medium" style={{ color: barColor }}>
+            <Text
+              style={{
+                fontSize: 12,
+                fontFamily: fonts.medium,
+                color: barColor,
+              }}
+            >
               {Math.round(clampedProgress * 100)}%
             </Text>
           )}

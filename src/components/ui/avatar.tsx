@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-
-const accent = require('@theme/accent');
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 
 interface AvatarProps {
   name?: string;
@@ -13,9 +13,12 @@ interface AvatarProps {
 export function Avatar({
   name,
   size = 40,
-  backgroundColor = accent[500],
+  backgroundColor,
   className = '',
 }: AvatarProps) {
+  const theme = useTheme();
+  const bgColor = backgroundColor ?? theme.accent500;
+
   const initials = name
     ? name
         .split(' ')
@@ -27,12 +30,14 @@ export function Avatar({
 
   return (
     <View
-      className={`items-center justify-center rounded-full border-2 border-white dark:border-gray-900 ${className}`}
+      className={`items-center justify-center rounded-full ${className}`}
       style={{
         width: size,
         height: size,
-        backgroundColor,
-        shadowColor: backgroundColor,
+        backgroundColor: bgColor,
+        borderWidth: 2,
+        borderColor: theme.cardBg,
+        shadowColor: bgColor,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.15,
         shadowRadius: 4,
@@ -40,8 +45,11 @@ export function Avatar({
       }}
     >
       <Text
-        className="text-white font-semibold"
-        style={{ fontSize: size * 0.38 }}
+        style={{
+          color: theme.textOnAccent,
+          fontFamily: fonts.semibold,
+          fontSize: size * 0.38,
+        }}
       >
         {initials}
       </Text>

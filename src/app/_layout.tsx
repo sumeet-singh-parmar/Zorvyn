@@ -1,12 +1,17 @@
 import React from 'react';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View, LogBox } from 'react-native';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 
-LogBox.ignoreLogs(['Unsupported top level event type "topSvgLayout"']);
+LogBox.ignoreLogs([
+  'Unsupported top level event type "topSvgLayout"',
+  'VirtualizedLists should never be nested',
+]);
 
 import { AppProviders } from '@core/providers/app-providers';
-import { ThemeDemoScreen } from '@features/settings/screens/theme-demo-screen';
+import { EdgeFade } from '@components/shared/edge-fade';
+import { useTheme } from '@theme/use-theme';
 import {
   useFonts,
   Nunito_400Regular,
@@ -22,6 +27,24 @@ configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
   strict: false,
 });
+
+/** Inner shell -- needs to be inside AppProviders to use useTheme() */
+function AppShell() {
+  const theme = useTheme();
+
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.screenBg }}>
+      <StatusBar style="auto" />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(onboarding)" />
+        <Stack.Screen name="accounts" />
+        {/* budget and goal forms now open via GlobalSheet, not modal routes */}
+      </Stack>
+      <EdgeFade />
+    </View>
+  );
+}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -41,27 +64,9 @@ export default function RootLayout() {
     );
   }
 
-  // TEMPORARY: Show theme demo instead of main app
-  // Remove this and restore the Stack navigator once theme is validated
   return (
     <AppProviders>
-      <StatusBar style="auto" />
-      <ThemeDemoScreen />
+      <AppShell />
     </AppProviders>
   );
-
-  /* ORIGINAL APP ROUTES — restore after demo validation
-  return (
-    <AppProviders>
-      <StatusBar style="auto" />
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="(onboarding)" />
-        <Stack.Screen name="transaction" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="budget/index" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="goal/index" options={{ presentation: 'modal' }} />
-      </Stack>
-    </AppProviders>
-  );
-  */
 }

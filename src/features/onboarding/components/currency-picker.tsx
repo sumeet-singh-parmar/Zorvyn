@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, FlatList } from 'react-native';
-import { useColorScheme } from 'nativewind';
+import { View, Text, Pressable } from 'react-native';
 import { Check, Search } from 'lucide-react-native';
 import { Input } from '@components/ui/input';
 import { CURRENCY_LIST, type CurrencyInfo } from '@core/currency/currency-data';
-
-const accent = require('@theme/accent');
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 
 interface CurrencyPickerProps {
   selected: string;
@@ -13,8 +12,7 @@ interface CurrencyPickerProps {
 }
 
 export function CurrencyPicker({ selected, onSelect }: CurrencyPickerProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useTheme();
   const [search, setSearch] = useState('');
 
   const filtered = CURRENCY_LIST.filter(
@@ -28,37 +26,57 @@ export function CurrencyPicker({ selected, onSelect }: CurrencyPickerProps) {
     return (
       <Pressable
         onPress={() => onSelect(item.code)}
-        className={`flex-row items-center px-4 py-3.5 rounded-2xl mb-2 ${
-          isSelected
-            ? 'bg-accent-50 border-2 border-accent-400'
-            : 'border border-gray-100'
-        }`}
-        style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1, backgroundColor: isSelected ? undefined : (isDark ? accent.surfaceDark : accent.surfaceLight) }]}
+        className="flex-row items-center px-4 py-3.5 rounded-2xl mb-2"
+        style={({ pressed }) => [
+          {
+            opacity: pressed ? 0.7 : 1,
+            backgroundColor: isSelected ? theme.tint : theme.surfaceBg,
+            borderWidth: isSelected ? 2 : 1,
+            borderColor: isSelected ? theme.accent400 : theme.border,
+          },
+        ]}
       >
         <View
-          className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${
-            isSelected ? 'bg-accent-200' : 'bg-gray-200'
-          }`}
+          className="w-10 h-10 rounded-full items-center justify-center mr-3"
+          style={{
+            backgroundColor: isSelected ? theme.accent200 + '40' : theme.border,
+          }}
         >
-          <Text className={`text-lg font-bold ${
-            isSelected ? 'text-accent-700' : 'text-gray-600'
-          }`}>
+          <Text
+            className="text-lg"
+            style={{
+              fontFamily: fonts.heading,
+              color: isSelected ? theme.accent700 : theme.textSecondary,
+            }}
+          >
             {item.symbol}
           </Text>
         </View>
 
         <View className="flex-1">
-          <Text className={`text-base font-semibold ${isSelected ? 'text-accent-800' : 'text-gray-900'}`}>
+          <Text
+            className="text-base"
+            style={{
+              fontFamily: fonts.semibold,
+              color: isSelected ? theme.accent800 : theme.textPrimary,
+            }}
+          >
             {item.code}
           </Text>
-          <Text className="text-sm text-gray-500">
+          <Text
+            className="text-sm"
+            style={{ color: theme.textSecondary, fontFamily: fonts.body }}
+          >
             {item.name}
           </Text>
         </View>
 
         {isSelected && (
-          <View className="w-6 h-6 rounded-full bg-accent-600 items-center justify-center">
-            <Check size={14} color="white" />
+          <View
+            className="w-6 h-6 rounded-full items-center justify-center"
+            style={{ backgroundColor: theme.accent600 }}
+          >
+            <Check size={14} color={theme.textOnAccent} />
           </View>
         )}
       </Pressable>
@@ -72,19 +90,18 @@ export function CurrencyPicker({ selected, onSelect }: CurrencyPickerProps) {
           placeholder="Search currencies..."
           value={search}
           onChangeText={setSearch}
-          leftIcon={<Search size={18} color="#9CA3AF" />}
+          leftIcon={<Search size={18} color={theme.textMuted} />}
           containerClassName="mb-0"
         />
       </View>
 
-      <FlatList
-        data={filtered}
-        keyExtractor={(item) => item.code}
-        renderItem={renderItem}
-        showsVerticalScrollIndicator={false}
-        scrollEnabled={true}
-        nestedScrollEnabled={true}
-      />
+      <View>
+        {filtered.map((item) => (
+          <React.Fragment key={item.code}>
+            {renderItem({ item } as any)}
+          </React.Fragment>
+        ))}
+      </View>
     </View>
   );
 }

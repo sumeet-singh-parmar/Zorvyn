@@ -2,9 +2,9 @@ import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { Briefcase, DollarSign, CreditCard, CircleCheck } from 'lucide-react-native';
 import { Modal } from '@components/ui/modal';
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 import type { Account } from '@core/models';
-
-const accent = require('@theme/accent');
 
 interface AccountPickerProps {
   visible: boolean;
@@ -28,6 +28,8 @@ export function AccountPicker({
   selected,
   onSelect,
 }: AccountPickerProps) {
+  const theme = useTheme();
+
   return (
     <Modal visible={visible} onClose={onClose} title="Select Account">
       <View>
@@ -38,36 +40,45 @@ export function AccountPicker({
                 onSelect(item.id);
                 onClose();
               }}
-              className={`flex-row items-center p-4 rounded-lg ${
-                selected === item.id
-                  ? 'bg-accent-50 dark:bg-accent-900/20'
-                  : 'bg-transparent'
-              }`}
+              className="flex-row items-center p-4 rounded-lg"
+              style={{
+                backgroundColor:
+                  selected === item.id ? theme.tint : 'transparent',
+              }}
             >
               <View
                 className="w-11 h-11 rounded-full items-center justify-center mr-4"
-                style={{ backgroundColor: (item.color ?? accent[500]) + '20' }}
+                style={{ backgroundColor: (item.color ?? theme.buttonBg) + '20' }}
               >
                 {React.createElement(
                   accountTypeIcons[item.type] ?? CreditCard,
                   {
                     size: 20,
-                    color: item.color ?? accent[500],
+                    color: item.color ?? theme.buttonBg,
                   }
                 )}
               </View>
               <View className="flex-1">
-                <Text className="text-base font-semibold text-gray-900 dark:text-gray-200">
+                <Text
+                  style={{ fontSize: 16, color: theme.textPrimary, fontFamily: fonts.semibold }}
+                >
                   {item.name}
                 </Text>
-                <Text className="text-xs text-gray-500 dark:text-gray-400 capitalize">{item.type.replace('_', ' ')}</Text>
+                <Text
+                  style={{ fontSize: 12, color: theme.textSecondary, fontFamily: fonts.body, textTransform: 'capitalize' }}
+                >
+                  {item.type.replace('_', ' ')}
+                </Text>
               </View>
               {selected === item.id && (
-                <CircleCheck size={22} color={accent[500]} />
+                <CircleCheck size={22} color={theme.buttonBg} />
               )}
             </Pressable>
             {index < accounts.length - 1 && (
-              <View className="h-px bg-gray-200 dark:bg-gray-700 mx-4" />
+              <View
+                className="h-px mx-4"
+                style={{ backgroundColor: theme.border }}
+              />
             )}
           </React.Fragment>
         ))}

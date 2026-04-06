@@ -2,11 +2,14 @@ import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import { CurrencyText } from '@components/shared/currency-text';
-import { PieChart as PieChartIcon } from 'lucide-react-native';
-import { useColorScheme } from 'nativewind';
+import { useTheme } from '@theme/use-theme';
+import { useThemeStore } from '@stores/theme-store';
+import { hslToHex, hslToRgba } from '@theme/hsl';
+import { fonts } from '@theme/fonts';
+import { ChevronRight } from 'lucide-react-native';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { ChartBarIncreasingIcon } from '@hugeicons/core-free-icons';
 import type { CategoryBreakdownItem } from '../types';
-
-const accent = require('@theme/accent');
 
 interface SpendingChartProps {
   data: CategoryBreakdownItem[];
@@ -14,23 +17,29 @@ interface SpendingChartProps {
 }
 
 export function SpendingChart({ data, onSeeAll }: SpendingChartProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const cardBg = isDark ? accent.cardDark : accent.cardLight;
-  const cardBorder = isDark ? accent[800] : accent[100];
+  const theme = useTheme();
+  const { hue, saturation } = useThemeStore();
 
   if (data.length === 0) {
     return (
       <View
-        className="rounded-2xl p-4 items-center"
-        style={{ backgroundColor: cardBg, borderWidth: 1, borderColor: cardBorder }}
+        style={{
+          backgroundColor: theme.cardBg,
+          borderRadius: 20,
+          borderWidth: 1,
+          borderColor: theme.border,
+          padding: 24,
+          alignItems: 'center',
+        }}
       >
-        <PieChartIcon size={32} color={isDark ? accent[400] : accent[600]} />
-        <Text className="text-sm font-semibold text-gray-800 dark:text-gray-200 mt-3">
+        <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: theme.tint, alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+          <HugeiconsIcon icon={ChartBarIncreasingIcon} size={24} color={theme.accent500} strokeWidth={1.8} />
+        </View>
+        <Text style={{ fontSize: 15, fontFamily: fonts.heading, color: theme.textPrimary }}>
           No spending this month
         </Text>
-        <Text className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
-          Start tracking expenses to see your spending breakdown
+        <Text style={{ fontSize: 13, fontFamily: fonts.body, color: theme.textMuted, marginTop: 4, textAlign: 'center' }}>
+          Start tracking expenses to see your breakdown
         </Text>
       </View>
     );
@@ -38,49 +47,66 @@ export function SpendingChart({ data, onSeeAll }: SpendingChartProps) {
 
   const total = data.reduce((sum, d) => sum + d.amount, 0);
 
-  const pieData = data.slice(0, 6).map((item) => ({
+  // Generate accent-harmonious colors for chart slices
+  const sliceColors = data.slice(0, 6).map((_, i) => {
+    const shift = i * 35;
+    return hslToHex((hue + shift) % 360, Math.max(40, saturation * 0.6), 55 + (i * 5));
+  });
+
+  const pieData = data.slice(0, 6).map((item, i) => ({
     value: item.amount,
-    color: item.color,
+    color: sliceColors[i],
     text: `${item.percentage}%`,
   }));
 
+  const centerBg = hslToRgba(hue, saturation * 0.1, 12, 1);
+
   return (
     <View
-      className="rounded-2xl p-4 overflow-hidden"
-      style={{ backgroundColor: cardBg, borderWidth: 1, borderColor: cardBorder }}
+      style={{
+        backgroundColor: theme.cardBg,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: theme.border,
+        overflow: 'hidden',
+      }}
     >
       {/* Header */}
-      <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-base font-bold text-gray-900 dark:text-gray-200">
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingBottom: 0 }}>
+        <Text style={{ fontSize: 17, fontFamily: fonts.heading, color: theme.textPrimary }}>
           Spending Breakdown
         </Text>
         <Pressable
           onPress={onSeeAll}
-          className="px-3 py-1.5 rounded-full"
-          style={{ backgroundColor: accent.tint }}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 20, backgroundColor: theme.tint }}
         >
-          <Text style={{ fontSize: 14, fontWeight: '600', color: accent[500] }}>See All</Text>
+          <Text style={{ fontSize: 13, fontFamily: fonts.semibold, color: theme.buttonBg }}>See All</Text>
+          <ChevronRight size={14} color={theme.buttonBg} />
         </Pressable>
       </View>
 
       {/* Chart */}
-      <View className="items-center my-4">
+      <View style={{ alignItems: 'center', paddingVertical: 20 }}>
         <PieChart
           data={pieData}
           donut
-          innerRadius={50}
-          radius={80}
+          innerRadius={55}
+          radius={85}
+          innerCircleColor={theme.cardBg}
           isAnimated
-          animationDuration={800}
+          animationDuration={600}
           centerLabelComponent={() => (
-            <View className="items-center">
-              <Text className="text-xs font-medium text-gray-500 dark:text-gray-400">
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 11, fontFamily: fonts.medium, color: theme.textMuted }}>
                 Total Spent
               </Text>
               <CurrencyText
                 amount={total}
                 compact
-                className="text-base font-bold mt-1 text-gray-800 dark:text-gray-100"
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.6}
+                style={{ fontSize: 18, fontFamily: fonts.black, color: theme.textPrimary, marginTop: 2 }}
               />
             </View>
           )}
@@ -88,26 +114,41 @@ export function SpendingChart({ data, onSeeAll }: SpendingChartProps) {
       </View>
 
       {/* Legend */}
-      <View style={{ marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: isDark ? accent[800] : accent[100] }}>
-        {data.slice(0, 5).map((item) => (
-          <View key={item.categoryId} className="flex-row items-center justify-between mb-3">
-            <View className="flex-row items-center flex-1">
+      <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+        {data.slice(0, 5).map((item, i) => (
+          <View
+            key={item.categoryId}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingVertical: 10,
+              borderTopWidth: 1,
+              borderTopColor: theme.border,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
               <View
-                className="w-3 h-3 rounded-full mr-2"
-                style={{ backgroundColor: item.color }}
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: 5,
+                  backgroundColor: sliceColors[i] ?? theme.accent500,
+                  marginRight: 10,
+                }}
               />
-              <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 flex-1">
+              <Text style={{ fontSize: 14, fontFamily: fonts.medium, color: theme.textPrimary, flex: 1 }}>
                 {item.categoryName}
               </Text>
             </View>
-            <View className="items-end">
-              <Text className="text-sm font-semibold text-gray-900 dark:text-gray-200">
+            <View style={{ alignItems: 'flex-end', marginLeft: 12 }}>
+              <Text style={{ fontSize: 14, fontFamily: fonts.heading, color: theme.textPrimary }}>
                 {item.percentage}%
               </Text>
               <CurrencyText
                 amount={item.amount}
                 compact
-                className="text-xs text-gray-500 dark:text-gray-400"
+                style={{ fontSize: 12, fontFamily: fonts.body, color: theme.textMuted }}
               />
             </View>
           </View>

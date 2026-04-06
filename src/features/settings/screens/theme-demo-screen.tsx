@@ -11,7 +11,16 @@ import {
   ChartHistogramIcon,
   Invoice02Icon,
   CreditCardIcon,
+  Restaurant01Icon,
+  Car01Icon,
+  ShoppingBag01Icon,
+  Invoice01Icon,
+  MedicineBottle01Icon,
+  VideoReplayIcon,
+  BookOpen01Icon,
+  MoneyReceiveSquareIcon,
 } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
 import { OverviewCard } from '@components/ui/overview-card';
 import { Modal } from '@components/ui/modal';
 import { useTheme, useIsDark } from '@theme/use-theme';
@@ -39,7 +48,11 @@ export function ThemeDemoScreen() {
   const insets = useSafeAreaInsets();
 
   const [activeTab, setActiveTab] = useState(0);
-  const [showSheet, setShowSheet] = useState(false);
+  const [showAccountSheet, setShowAccountSheet] = useState(false);
+  const [showCurrencySheet, setShowCurrencySheet] = useState(false);
+  const [showCategorySheet, setShowCategorySheet] = useState(false);
+  const [showConfirmSheet, setShowConfirmSheet] = useState(false);
+  const [showSettingsSheet, setShowSettingsSheet] = useState(false);
   const setTheme = useAppStore((s) => s.setTheme);
   const toggleDark = () => {
     const next = isDark ? 'light' : 'dark';
@@ -266,46 +279,187 @@ export function ThemeDemoScreen() {
         <Text style={{ fontFamily: fonts.medium, fontSize: 15, color: theme.textSecondary, marginBottom: 4 }}>Medium (500) — Body emphasis</Text>
         <Text style={{ fontFamily: fonts.body, fontSize: 14, color: theme.textMuted, marginBottom: 4 }}>Regular (400) — Body text</Text>
 
-        {/* Bottom Sheet */}
+        {/* Bottom Sheets */}
         <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 1.2, marginTop: 28, marginBottom: 12 }}>
-          Bottom Sheet
+          Bottom Sheets
         </Text>
-        <Pressable
-          onPress={() => setShowSheet(true)}
-          style={{
-            backgroundColor: theme.buttonBg,
-            borderRadius: 50,
-            paddingVertical: 14,
-            alignItems: 'center',
-            marginBottom: 60,
-          }}
-        >
-          <Text style={{ fontFamily: fonts.heading, fontSize: 15, color: theme.textOnAccent }}>Open Bottom Sheet</Text>
-        </Pressable>
+        <View style={{ backgroundColor: theme.cardBg, borderRadius: 20, borderWidth: 1, borderColor: theme.border, overflow: 'hidden', marginBottom: 60 }}>
+          {[
+            { label: 'Account Picker', onPress: () => setShowAccountSheet(true) },
+            { label: 'Currency Picker', onPress: () => setShowCurrencySheet(true) },
+            { label: 'Category Picker', onPress: () => setShowCategorySheet(true) },
+            { label: 'Confirm Dialog', onPress: () => setShowConfirmSheet(true) },
+            { label: 'Settings Sheet', onPress: () => setShowSettingsSheet(true) },
+          ].map((item, i, arr) => (
+            <Pressable
+              key={item.label}
+              onPress={item.onPress}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingVertical: 16,
+                paddingHorizontal: 16,
+                borderBottomWidth: i < arr.length - 1 ? 1 : 0,
+                borderBottomColor: theme.border,
+              }}
+            >
+              <Text style={{ fontFamily: fonts.semibold, fontSize: 15, color: theme.textPrimary }}>{item.label}</Text>
+              <ChevronRight size={18} color={theme.textMuted} />
+            </Pressable>
+          ))}
+        </View>
 
       </ScrollView>
 
-      {/* Bottom Sheet Modal */}
-      <Modal visible={showSheet} onClose={() => setShowSheet(false)} title="Select Account">
-        {['Kotak Savings', 'HDFC Current', 'Cash Wallet'].map((name, i) => (
+      {/* Account Picker Sheet */}
+      <Modal visible={showAccountSheet} onClose={() => setShowAccountSheet(false)} title="Select Account">
+        {['Kotak Savings', 'HDFC Current', 'Cash Wallet', 'Paytm Wallet'].map((name, i, arr) => (
           <Pressable
             key={name}
-            onPress={() => setShowSheet(false)}
+            onPress={() => setShowAccountSheet(false)}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
               paddingVertical: 14,
-              borderBottomWidth: i < 2 ? 1 : 0,
+              borderBottomWidth: i < arr.length - 1 ? 1 : 0,
               borderBottomColor: theme.border,
             }}
           >
             <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: theme.tint, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-              <Text style={{ fontFamily: fonts.heading, fontSize: 16, color: theme.accent500 }}>{name[0]}</Text>
+              <Text style={{ fontFamily: fonts.heading, fontSize: 16, color: theme.buttonBg }}>{name[0]}</Text>
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: fonts.semibold, fontSize: 15, color: theme.textPrimary }}>{name}</Text>
               <Text style={{ fontFamily: fonts.body, fontSize: 12, color: theme.textMuted, marginTop: 2 }}>Savings Account</Text>
             </View>
+            <ChevronRight size={18} color={theme.textMuted} />
+          </Pressable>
+        ))}
+      </Modal>
+
+      {/* Currency Picker Sheet */}
+      <Modal visible={showCurrencySheet} onClose={() => setShowCurrencySheet(false)} title="Select Currency">
+        {[
+          { code: 'INR', name: 'Indian Rupee', symbol: '₹' },
+          { code: 'USD', name: 'US Dollar', symbol: '$' },
+          { code: 'EUR', name: 'Euro', symbol: '€' },
+          { code: 'GBP', name: 'British Pound', symbol: '£' },
+        ].map((curr, i, arr) => (
+          <Pressable
+            key={curr.code}
+            onPress={() => setShowCurrencySheet(false)}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingVertical: 14,
+              borderBottomWidth: i < arr.length - 1 ? 1 : 0,
+              borderBottomColor: theme.border,
+            }}
+          >
+            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: theme.tint, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+              <Text style={{ fontFamily: fonts.heading, fontSize: 18, color: theme.buttonBg }}>{curr.symbol}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontFamily: fonts.semibold, fontSize: 15, color: theme.textPrimary }}>{curr.code}</Text>
+              <Text style={{ fontFamily: fonts.body, fontSize: 12, color: theme.textMuted, marginTop: 2 }}>{curr.name}</Text>
+            </View>
+          </Pressable>
+        ))}
+      </Modal>
+
+      {/* Category Picker Sheet */}
+      <Modal visible={showCategorySheet} onClose={() => setShowCategorySheet(false)} title="Select Category">
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between' }}>
+          {[
+            { name: 'Food & Dining', icon: Restaurant01Icon, color: '#FF6B6B' },
+            { name: 'Transport', icon: Car01Icon, color: '#4DA6FF' },
+            { name: 'Shopping', icon: ShoppingBag01Icon, color: '#FF9F43' },
+            { name: 'Bills', icon: Invoice01Icon, color: '#A29BFE' },
+            { name: 'Health', icon: MedicineBottle01Icon, color: '#00C48C' },
+            { name: 'Entertainment', icon: VideoReplayIcon, color: '#FD79A8' },
+            { name: 'Education', icon: BookOpen01Icon, color: '#6C5CE7' },
+            { name: 'Salary', icon: MoneyReceiveSquareIcon, color: '#00B894' },
+          ].map((cat) => (
+            <Pressable
+              key={cat.name}
+              onPress={() => setShowCategorySheet(false)}
+              style={{
+                alignItems: 'center',
+                width: '23%',
+                paddingVertical: 14,
+                borderRadius: 18,
+                backgroundColor: theme.surfaceBg,
+              }}
+            >
+              <View style={{
+                width: 44,
+                height: 44,
+                borderRadius: 14,
+                backgroundColor: cat.color + '18',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 8,
+              }}>
+                <HugeiconsIcon icon={cat.icon} size={22} color={cat.color} strokeWidth={1.8} />
+              </View>
+              <Text
+                numberOfLines={2}
+                style={{
+                  fontFamily: fonts.medium,
+                  fontSize: 11,
+                  color: theme.textSecondary,
+                  textAlign: 'center',
+                  lineHeight: 14,
+                  paddingHorizontal: 2,
+                }}
+              >
+                {cat.name}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </Modal>
+
+      {/* Confirm Dialog Sheet */}
+      <Modal visible={showConfirmSheet} onClose={() => setShowConfirmSheet(false)} title="Delete Transaction?">
+        <Text style={{ fontFamily: fonts.body, fontSize: 14, color: theme.textSecondary, marginBottom: 20 }}>
+          Are you sure you want to delete this transaction? This action cannot be undone.
+        </Text>
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <Pressable
+            onPress={() => setShowConfirmSheet(false)}
+            style={{ flex: 1, paddingVertical: 14, borderRadius: 50, backgroundColor: theme.surfaceBg, borderWidth: 1, borderColor: theme.border, alignItems: 'center' }}
+          >
+            <Text style={{ fontFamily: fonts.semibold, fontSize: 15, color: theme.textPrimary }}>Cancel</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setShowConfirmSheet(false)}
+            style={{ flex: 1, paddingVertical: 14, borderRadius: 50, backgroundColor: theme.expense, alignItems: 'center' }}
+          >
+            <Text style={{ fontFamily: fonts.semibold, fontSize: 15, color: '#FFFFFF' }}>Delete</Text>
+          </Pressable>
+        </View>
+      </Modal>
+
+      {/* Settings Sheet */}
+      <Modal visible={showSettingsSheet} onClose={() => setShowSettingsSheet(false)} title="Settings">
+        {['Export CSV', 'Export JSON', 'Seed Demo Data', 'Clear All Data'].map((label, i, arr) => (
+          <Pressable
+            key={label}
+            onPress={() => setShowSettingsSheet(false)}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingVertical: 16,
+              borderBottomWidth: i < arr.length - 1 ? 1 : 0,
+              borderBottomColor: theme.border,
+            }}
+          >
+            <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: theme.tint, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+              <Search size={16} color={theme.buttonBg} />
+            </View>
+            <Text style={{ flex: 1, fontFamily: fonts.semibold, fontSize: 15, color: label === 'Clear All Data' ? theme.expense : theme.textPrimary }}>{label}</Text>
             <ChevronRight size={18} color={theme.textMuted} />
           </Pressable>
         ))}

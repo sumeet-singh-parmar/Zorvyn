@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useColorScheme } from 'nativewind';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useDatabase } from '@core/providers/database-provider';
@@ -12,24 +11,22 @@ import { queryKeys } from '@core/constants/query-keys';
 import { CategoryIcon } from '@components/shared/category-icon';
 import { CurrencyText } from '@components/shared/currency-text';
 import { Button } from '@components/ui/button';
-import { Card } from '@components/ui/card';
 import { LoadingState } from '@components/feedback/loading-state';
 import { ErrorState } from '@components/feedback/error-state';
 import { showConfirmDialog } from '@components/shared/confirm-dialog';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Wallet, Tag, FileText, Coins, Trash2, ChevronRight } from 'lucide-react-native';
 import { formatDate } from '@core/utils/date';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-const accent = require('@theme/accent');
+import { useScreenTopPadding } from '@components/shared/edge-fade';
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 
 export function TransactionDetailScreen() {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useTheme();
+  const topPadding = useScreenTopPadding();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const db = useDatabase();
   const queryClient = useQueryClient();
-  const insets = useSafeAreaInsets();
 
   const transactionRepo = useMemo(() => new TransactionRepository(db), [db]);
   const categoryRepo = useMemo(() => new CategoryRepository(db), [db]);
@@ -82,6 +79,13 @@ export function TransactionDetailScreen() {
   const category = categoriesQuery.data?.find((c) => c.id === tx.category_id);
   const account = accountsQuery.data?.find((a) => a.id === tx.account_id);
 
+  const typeColor: Record<string, string> = {
+    income: theme.income,
+    expense: theme.expense,
+    transfer: theme.transfer,
+  };
+  const accentColor = typeColor[tx.type] ?? theme.accent500;
+
   const handleDelete = () => {
     showConfirmDialog({
       title: 'Delete Transaction',
@@ -92,66 +96,122 @@ export function TransactionDetailScreen() {
     });
   };
 
+  const details = [
+    { icon: Tag, label: 'Category', value: category?.name ?? 'Uncategorized' },
+    { icon: Wallet, label: 'Account', value: account?.name ?? 'Unknown' },
+    { icon: Calendar, label: 'Date', value: formatDate(tx.date) },
+    { icon: Coins, label: 'Currency', value: tx.currency_code },
+    ...(tx.notes ? [{ icon: FileText, label: 'Notes', value: tx.notes }] : []),
+  ];
+
   return (
-    <View className="flex-1" style={{ paddingTop: insets.top, backgroundColor: isDark ? accent.screenBg : accent.screenBgLight }}>
-      {/* Clean Header */}
-      <View className="flex-row items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
-        <Pressable onPress={() => router.back()} className="p-2 -ml-2">
-          <ArrowLeft size={28} color="#6B7280" />
+    <View style={{ flex: 1, backgroundColor: theme.screenBg }}>
+      {/* Header */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: topPadding, paddingHorizontal: 20, paddingBottom: 16 }}>
+        <Pressable onPress={() => router.back()} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, padding: 4 })}>
+          <ArrowLeft size={24} color={theme.textPrimary} />
         </Pressable>
-        <Text className="text-xl font-bold text-gray-900 dark:text-gray-200">
-          Transaction Details
-        </Text>
-        <View style={{ width: 40 }} />
+        <View style={{ flex: 1 }} />
       </View>
 
-      <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
-        {/* Amount Hero Section */}
-        <View className="items-center py-8">
-          <View className="bg-gray-100 dark:bg-gray-900 rounded-full p-6 mb-4">
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+        {/* Hero */}
+        <View style={{ alignItems: 'center', paddingVertical: 24, paddingHorizontal: 20 }}>
+          {/* Category icon circle */}
+          <View style={{
+            width: 72,
+            height: 72,
+            borderRadius: 24,
+            backgroundColor: accentColor + '18',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 20,
+          }}>
             <CategoryIcon
               iconName={category?.icon ?? 'circle'}
-              color={category?.color ?? '#9CA3AF'}
+              color={category?.color ?? accentColor}
               size="lg"
             />
           </View>
-          <Text className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
-            {tx.type}
-          </Text>
+
+          {/* Type badge */}
+          <View style={{
+            backgroundColor: accentColor + '18',
+            paddingHorizontal: 16,
+            paddingVertical: 6,
+            borderRadius: 50,
+            marginBottom: 12,
+          }}>
+            <Text style={{ fontSize: 12, fontFamily: fonts.heading, color: accentColor, textTransform: 'uppercase', letterSpacing: 1.5 }}>
+              {tx.type}
+            </Text>
+          </View>
+
+          {/* Amount */}
           <CurrencyText
             amount={tx.amount}
             type={tx.type}
-            className="text-5xl font-bold"
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.5}
+            style={{ fontSize: 42, fontFamily: fonts.black }}
           />
         </View>
 
-        {/* Details Card */}
-        <Card className="mb-6 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800">
-          <DetailRow label="Category" value={category?.name ?? 'Uncategorized'} />
-          <DetailRow label="Account" value={account?.name ?? 'Unknown'} />
-          <DetailRow label="Date" value={formatDate(tx.date)} />
-          <DetailRow label="Currency" value={tx.currency_code} />
-          {tx.notes && <DetailRow label="Notes" value={tx.notes} />}
-        </Card>
+        {/* Details card */}
+        <View style={{ marginHorizontal: 20, backgroundColor: theme.cardBg, borderRadius: 20, borderWidth: 1, borderColor: theme.border, overflow: 'hidden' }}>
+          {details.map((item, i) => {
+            const IconComp = item.icon;
+            return (
+              <View
+                key={item.label}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: 16,
+                  paddingVertical: 16,
+                  borderTopWidth: i > 0 ? 1 : 0,
+                  borderTopColor: theme.border,
+                }}
+              >
+                <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: theme.tint, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                  <IconComp size={16} color={theme.buttonBg} />
+                </View>
+                <Text style={{ flex: 1, fontSize: 14, fontFamily: fonts.medium, color: theme.textSecondary }}>
+                  {item.label}
+                </Text>
+                <Text style={{ fontSize: 14, fontFamily: fonts.semibold, color: theme.textPrimary, maxWidth: '50%', textAlign: 'right' }} numberOfLines={2}>
+                  {item.value}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
 
-        {/* Delete Button */}
-        <Button
-          title="Delete Transaction"
-          onPress={handleDelete}
-          variant="danger"
-          loading={deleteMutation.isPending}
-          className="mb-8 rounded-xl"
-        />
+        {/* Delete */}
+        <View style={{ marginHorizontal: 20, marginTop: 24 }}>
+          <Pressable onPress={handleDelete} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: theme.expenseTint,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: theme.expense + '25',
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+            }}>
+              <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: theme.expense + '20', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                <Trash2 size={18} color={theme.expense} />
+              </View>
+              <Text style={{ flex: 1, fontSize: 15, fontFamily: fonts.semibold, color: theme.expense }}>
+                Delete Transaction
+              </Text>
+              <ChevronRight size={18} color={theme.expense} />
+            </View>
+          </Pressable>
+        </View>
       </ScrollView>
-    </View>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View className="flex-row justify-between py-3 border-b border-gray-100 dark:border-gray-800 last:border-0">
-      <Text className="text-sm text-gray-500 dark:text-gray-400">{label}</Text>
-      <Text className="text-sm font-medium text-gray-900 dark:text-gray-200">{value}</Text>
     </View>
   );
 }

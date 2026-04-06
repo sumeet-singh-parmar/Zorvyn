@@ -1,22 +1,20 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useColorScheme } from 'nativewind';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { WelcomeHero } from '../components/welcome-hero';
 import { Button } from '@components/ui/button';
-
-const accent = require('@theme/accent');
+import { useScreenTopPadding } from '@components/shared/edge-fade';
+import { useTheme } from '@theme/use-theme';
 
 export function WelcomeScreen() {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
   const router = useRouter();
+  const topPadding = useScreenTopPadding();
+  const theme = useTheme();
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: isDark ? accent.screenBg : accent.screenBgLight }}>
-      <View className="flex-1 justify-between px-6">
+    <View style={{ flex: 1 }}>
+      <View className="flex-1 justify-between px-6" style={{ paddingTop: topPadding }}>
         {/* Hero Content */}
         <WelcomeHero />
 
@@ -27,9 +25,9 @@ export function WelcomeScreen() {
         >
           {/* Step Indicator */}
           <View className="flex-row items-center gap-2 mb-6">
-            <View className="w-8 h-2 rounded-full bg-accent-600" />
-            <View className="w-2 h-2 rounded-full bg-gray-200" />
-            <View className="w-2 h-2 rounded-full bg-gray-200" />
+            <View className="w-8 h-2 rounded-full" style={{ backgroundColor: theme.accent600 }} />
+            <View className="w-2 h-2 rounded-full" style={{ backgroundColor: theme.border }} />
+            <View className="w-2 h-2 rounded-full" style={{ backgroundColor: theme.border }} />
           </View>
 
           {/* CTA Button */}
@@ -41,6 +39,6 @@ export function WelcomeScreen() {
           />
         </Animated.View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

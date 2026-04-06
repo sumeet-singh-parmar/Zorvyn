@@ -2,9 +2,8 @@ import React from 'react';
 import { Text, type TextStyle, type TextProps } from 'react-native';
 import { formatCurrency, formatCompactCurrency } from '@core/currency';
 import { useCurrencyStore } from '@stores/currency-store';
+import { useTheme } from '@theme/use-theme';
 import { fonts } from '@theme/fonts';
-
-const semantic = require('@theme/semantic');
 
 interface CurrencyTextProps extends Pick<TextProps, 'numberOfLines' | 'adjustsFontSizeToFit' | 'minimumFontScale'> {
   amount: number;
@@ -14,13 +13,6 @@ interface CurrencyTextProps extends Pick<TextProps, 'numberOfLines' | 'adjustsFo
   style?: TextStyle;
   className?: string;
 }
-
-const typeColors = {
-  income: semantic.income.DEFAULT,
-  expense: semantic.expense.DEFAULT,
-  transfer: semantic.transfer.DEFAULT,
-  neutral: undefined,
-};
 
 export function CurrencyText({
   amount,
@@ -33,12 +25,16 @@ export function CurrencyText({
   adjustsFontSizeToFit,
   minimumFontScale,
 }: CurrencyTextProps) {
+  const theme = useTheme();
   const defaultCurrency = useCurrencyStore((s) => s.currencyCode);
   const code = currencyCode ?? defaultCurrency;
 
-  const formatted = compact
-    ? formatCompactCurrency(amount, code)
-    : formatCurrency(amount, code);
+  const typeColors: Record<string, string | undefined> = {
+    income: theme.income,
+    expense: theme.expense,
+    transfer: theme.transfer,
+    neutral: undefined,
+  };
 
   const prefix = type === 'income' ? '+' : type === 'expense' ? '-' : '';
   const displayAmount = type === 'expense' ? Math.abs(amount) : amount;
@@ -48,11 +44,10 @@ export function CurrencyText({
 
   return (
     <Text
-      className={`text-base ${className}`}
       numberOfLines={numberOfLines}
       adjustsFontSizeToFit={adjustsFontSizeToFit}
       minimumFontScale={minimumFontScale}
-      style={[{ fontFamily: fonts.heading }, typeColors[type] ? { color: typeColors[type] } : { color: '#111827' }, style]}
+      style={[{ fontFamily: fonts.heading }, typeColors[type] ? { color: typeColors[type] } : { color: theme.textPrimary }, style]}
     >
       {prefix}{displayText}
     </Text>

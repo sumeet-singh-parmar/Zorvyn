@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 
 interface SectionHeaderProps {
   title: string;
@@ -14,14 +16,22 @@ export function SectionHeader({
   onAction,
   className = '',
 }: SectionHeaderProps) {
+  const theme = useTheme();
+
   return (
     <View className={`flex-row items-center justify-between ${className}`}>
-      <Text className="text-lg font-bold text-gray-900 dark:text-gray-200">
+      <Text
+        style={{ fontSize: 18, color: theme.textPrimary, fontFamily: fonts.heading }}
+      >
         {title}
       </Text>
       {action && onAction && (
         <Pressable onPress={onAction} className="px-2 py-1">
-          <Text className="text-sm font-semibold text-accent-600 dark:text-accent-400">{action}</Text>
+          <Text
+            style={{ fontSize: 14, color: theme.accent500, fontFamily: fonts.semibold }}
+          >
+            {action}
+          </Text>
         </Pressable>
       )}
     </View>

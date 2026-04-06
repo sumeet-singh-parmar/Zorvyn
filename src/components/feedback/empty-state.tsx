@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { Icon } from '@components/shared/icon-map';
 import { Button } from '@components/ui/button';
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 
 interface EmptyStateProps {
   icon?: string;
@@ -18,16 +20,27 @@ export function EmptyState({
   actionLabel,
   onAction,
 }: EmptyStateProps) {
+  const theme = useTheme();
+
   return (
     <View className="flex-1 items-center justify-center px-8 py-16">
-      <View className="w-20 h-20 rounded-full bg-gray-100 items-center justify-center mb-6">
-        <Icon name={icon} size={36} color="#A1A1A1" />
+      <View
+        className="w-20 h-20 rounded-full items-center justify-center mb-6"
+        style={{ backgroundColor: theme.surfaceBg }}
+      >
+        <Icon name={icon} size={36} color={theme.textMuted} />
       </View>
-      <Text className="text-xl font-bold text-gray-900 text-center mb-3">
+      <Text
+        className="text-center mb-3"
+        style={{ fontSize: 20, color: theme.textPrimary, fontFamily: fonts.heading }}
+      >
         {title}
       </Text>
       {description && (
-        <Text className="text-sm text-gray-500 text-center mb-8 leading-5">
+        <Text
+          className="text-center mb-8"
+          style={{ fontSize: 14, lineHeight: 20, color: theme.textSecondary }}
+        >
           {description}
         </Text>
       )}

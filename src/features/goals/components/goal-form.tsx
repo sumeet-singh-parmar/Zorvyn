@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView } from 'react-native';
-import { useColorScheme } from 'nativewind';
 import { Input } from '@components/ui/input';
 import { AmountInput } from '@components/shared/amount-input';
 import { Button } from '@components/ui/button';
 import { IconPicker } from '@components/shared/icon-picker';
 import { ColorPicker } from '@components/shared/color-picker';
 import { Calendar } from 'lucide-react-native';
-
-const accent = require('@theme/accent');
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 
 interface GoalFormProps {
   onSubmit: (data: { name: string; targetAmount: number; deadline?: string; icon?: string; color?: string }) => void;
@@ -16,13 +15,12 @@ interface GoalFormProps {
 }
 
 export function GoalForm({ onSubmit, loading }: GoalFormProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useTheme();
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [deadline, setDeadline] = useState('');
   const [icon, setIcon] = useState('target');
-  const [color, setColor] = useState(accent[500]);
+  const [color, setColor] = useState(theme.buttonBg);
   const [error, setError] = useState('');
 
   const handleSubmit = () => {
@@ -44,7 +42,12 @@ export function GoalForm({ onSubmit, loading }: GoalFormProps) {
       <View className="px-4 pt-2">
         {/* Goal Name */}
         <View className="mb-6">
-          <Text className="text-sm font-bold text-gray-900 dark:text-gray-200 mb-2">Goal Name</Text>
+          <Text
+            className="text-sm mb-2"
+            style={{ color: theme.textPrimary, fontFamily: fonts.heading }}
+          >
+            Goal Name
+          </Text>
           <Input
             placeholder="e.g. Vacation Fund"
             value={name}
@@ -54,43 +57,78 @@ export function GoalForm({ onSubmit, loading }: GoalFormProps) {
 
         {/* Target Amount */}
         <View className="mb-6">
-          <Text className="text-sm font-bold text-gray-900 dark:text-gray-200 mb-2">Target Amount</Text>
-          <View className="rounded-2xl px-4 py-3" style={{ backgroundColor: isDark ? accent.surfaceDark : accent.surfaceLight }}>
+          <Text
+            className="text-sm mb-2"
+            style={{ color: theme.textPrimary, fontFamily: fonts.heading }}
+          >
+            Target Amount
+          </Text>
+          <View
+            className="rounded-2xl px-4 py-3"
+            style={{ backgroundColor: theme.surfaceBg }}
+          >
             <AmountInput value={amount} onChangeText={setAmount} autoFocus={false} />
           </View>
         </View>
 
         {/* Deadline */}
         <View className="mb-6">
-          <Text className="text-sm font-bold text-gray-900 dark:text-gray-200 mb-2">Deadline (optional)</Text>
+          <Text
+            className="text-sm mb-2"
+            style={{ color: theme.textPrimary, fontFamily: fonts.heading }}
+          >
+            Deadline (optional)
+          </Text>
           <Input
             placeholder="YYYY-MM-DD"
             value={deadline}
             onChangeText={setDeadline}
-            leftIcon={<Calendar size={18} color="#9CA3AF" />}
+            leftIcon={<Calendar size={18} color={theme.textMuted} />}
           />
         </View>
 
         {/* Icon Picker */}
         <View className="mb-6">
-          <Text className="text-sm font-bold text-gray-900 dark:text-gray-200 mb-3">Choose Icon</Text>
-          <View className="rounded-2xl p-4" style={{ backgroundColor: isDark ? accent.surfaceDark : accent.surfaceLight }}>
+          <Text
+            className="text-sm mb-3"
+            style={{ color: theme.textPrimary, fontFamily: fonts.heading }}
+          >
+            Choose Icon
+          </Text>
+          <View
+            className="rounded-2xl p-4"
+            style={{ backgroundColor: theme.surfaceBg }}
+          >
             <IconPicker selected={icon} onSelect={setIcon} color={color} />
           </View>
         </View>
 
         {/* Color Picker */}
         <View className="mb-6">
-          <Text className="text-sm font-bold text-gray-900 dark:text-gray-200 mb-3">Choose Color</Text>
-          <View className="rounded-2xl p-4" style={{ backgroundColor: isDark ? accent.surfaceDark : accent.surfaceLight }}>
+          <Text
+            className="text-sm mb-3"
+            style={{ color: theme.textPrimary, fontFamily: fonts.heading }}
+          >
+            Choose Color
+          </Text>
+          <View
+            className="rounded-2xl p-4"
+            style={{ backgroundColor: theme.surfaceBg }}
+          >
             <ColorPicker selected={color} onSelect={setColor} />
           </View>
         </View>
 
         {/* Error Message */}
         {error ? (
-          <View className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-3 mb-6">
-            <Text className="text-red-600 dark:text-red-400 text-sm font-medium text-center">
+          <View
+            className="rounded-2xl p-3 mb-6"
+            style={{ backgroundColor: theme.expenseTint }}
+          >
+            <Text
+              className="text-sm text-center"
+              style={{ color: theme.expense, fontFamily: fonts.medium }}
+            >
               {error}
             </Text>
           </View>
@@ -102,7 +140,7 @@ export function GoalForm({ onSubmit, loading }: GoalFormProps) {
           onPress={handleSubmit}
           loading={loading}
           size="lg"
-          className="mb-6 bg-accent-500"
+          className="mb-6"
         />
       </View>
     </ScrollView>

@@ -4,14 +4,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Plus } from 'lucide-react-native';
 
 import { shadows } from '@theme/shadows';
-
-const accent = require('@theme/accent');
+import { useTheme } from '@theme/use-theme';
 
 interface FABProps {
   onPress: () => void;
 }
 
 export function FAB({ onPress }: FABProps) {
+  const theme = useTheme();
+
   return (
     <View
       style={{
@@ -35,7 +36,7 @@ export function FAB({ onPress }: FABProps) {
         })}
       >
         <LinearGradient
-          colors={[accent.gradientStart, accent.gradientMid, accent.gradientEnd]}
+          colors={[theme.gradientStart, theme.accent500, theme.gradientEnd]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{
@@ -46,7 +47,7 @@ export function FAB({ onPress }: FABProps) {
             borderRadius: 30,
           }}
         >
-          <Plus size={26} color="#FFFFFF" strokeWidth={2.5} />
+          <Plus size={26} color={theme.textOnAccent} strokeWidth={2.5} />
         </LinearGradient>
       </Pressable>
     </View>

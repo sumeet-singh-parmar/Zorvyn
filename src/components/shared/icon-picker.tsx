@@ -1,9 +1,7 @@
 import React from 'react';
 import { View, Pressable, ScrollView } from 'react-native';
-import { useColorScheme } from 'nativewind';
+import { useTheme } from '@theme/use-theme';
 import { Icon } from './icon-map';
-
-const accent = require('@theme/accent');
 
 interface IconPickerProps {
   selected: string;
@@ -26,10 +24,10 @@ const AVAILABLE_ICONS = [
 export function IconPicker({
   selected,
   onSelect,
-  color = accent[500],
+  color,
 }: IconPickerProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useTheme();
+  const resolvedColor = color ?? theme.accent500;
   return (
     <ScrollView>
       <View className="flex-row flex-wrap gap-2 p-2">
@@ -37,17 +35,17 @@ export function IconPicker({
           <Pressable
             key={icon}
             onPress={() => onSelect(icon)}
-            className={`w-14 h-14 items-center justify-center rounded-xl`}
+            className="w-14 h-14 items-center justify-center rounded-xl"
             style={
               selected === icon
-                ? { backgroundColor: color + '15', borderColor: color, borderWidth: 2.5 }
-                : { backgroundColor: isDark ? accent.surfaceDark : accent.surfaceLight, borderWidth: 0 }
+                ? { backgroundColor: resolvedColor + '15', borderColor: resolvedColor, borderWidth: 2.5 }
+                : { backgroundColor: theme.surfaceBg, borderWidth: 0 }
             }
           >
             <Icon
               name={icon}
               size={26}
-              color={selected === icon ? color : '#9CA3AF'}
+              color={selected === icon ? resolvedColor : theme.textMuted}
             />
           </Pressable>
         ))}

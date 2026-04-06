@@ -1,30 +1,36 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { View, FlatList, Text, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useColorScheme } from 'nativewind';
+import { useScreenTopPadding } from '@components/shared/edge-fade';
 import { useGoals } from '../hooks/use-goals';
-
-const accent = require('@theme/accent');
 import { GoalCard } from '../components/goal-card';
 import { GoalForm } from '../components/goal-form';
-import { FAB } from '@components/ui/fab';
-import { Modal } from '@components/ui/modal';
 import { EmptyState } from '@components/feedback/empty-state';
 import { LoadingState } from '@components/feedback/loading-state';
 import { ErrorState } from '@components/feedback/error-state';
 import { SectionHeader } from '@components/ui/section-header';
-import { X, TrendingUp } from 'lucide-react-native';
+import { TrendingUp, Plus } from 'lucide-react-native';
 import { CurrencyText } from '@components/shared/currency-text';
+import { useGlobalSheet } from '@components/shared/global-sheet';
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 
 export function GoalsScreen() {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const topPadding = useScreenTopPadding();
+  const theme = useTheme();
   const { activeGoalsQuery, completedGoalsQuery, createGoalMutation } = useGoals();
-  const [showForm, setShowForm] = useState(false);
+  const { openSheet, closeSheet } = useGlobalSheet();
 
   const handleCreate = async (data: { name: string; targetAmount: number; deadline?: string; icon?: string; color?: string }) => {
     await createGoalMutation.mutateAsync(data);
-    setShowForm(false);
+    closeSheet();
+  };
+
+  const handleOpenForm = () => {
+    openSheet({
+      title: 'Create Goal',
+      content: <GoalForm onSubmit={handleCreate} loading={createGoalMutation.isPending} />,
+      snapPoints: ['80%'],
+    });
   };
 
   if (activeGoalsQuery.isLoading) return <LoadingState />;
@@ -41,34 +47,34 @@ export function GoalsScreen() {
   const hasAnyGoals = activeGoals.length > 0 || completedGoals.length > 0;
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: isDark ? accent.screenBg : accent.screenBgLight }}>
+    <View style={{ flex: 1 }}>
       {/* Header */}
-      <View className="px-4 py-4 flex-row items-center justify-between">
-        <Text className="text-3xl font-bold text-gray-900 dark:text-gray-200">Savings Goals</Text>
-        <Pressable className="p-2 rounded-full active:bg-gray-100 dark:active:bg-gray-800">
-          <X size={24} color="#6B7280" />
-        </Pressable>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: topPadding, paddingBottom: 16 }}>
+        <Text style={{ fontSize: 28, fontFamily: fonts.black, color: theme.textPrimary }}>
+          Savings Goals
+        </Text>
       </View>
 
       {hasAnyGoals ? (
         <>
           {/* Summary Card */}
-          <View className="mx-4 mb-6 bg-accent-500 rounded-3xl p-6 shadow-lg">
-            <View className="flex-row items-baseline justify-between">
-              <View>
-                <Text className="text-white text-sm font-medium opacity-90 mb-1">Total Saved</Text>
-                <View className="flex-row items-baseline gap-1">
-                  <CurrencyText
-                    amount={totalSaved}
-                    className="text-4xl font-bold text-white"
-                  />
-                </View>
+          <View style={{ marginHorizontal: 20, marginBottom: 20, borderRadius: 24, padding: 22, backgroundColor: theme.buttonBg }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 13, fontFamily: fonts.medium, color: theme.textOnAccent, opacity: 0.8, marginBottom: 4 }}>Total Saved</Text>
+                <CurrencyText
+                  amount={totalSaved}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.5}
+                  style={{ fontSize: 32, fontFamily: fonts.black, color: theme.textOnAccent }}
+                />
               </View>
-              <View className="w-16 h-16 bg-white/20 rounded-2xl items-center justify-center">
-                <TrendingUp size={32} color="white" />
+              <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' }}>
+                <TrendingUp size={24} color={theme.textOnAccent} />
               </View>
             </View>
-            <Text className="text-white text-xs font-medium mt-4 opacity-80">
+            <Text style={{ fontSize: 12, fontFamily: fonts.medium, color: theme.textOnAccent, opacity: 0.7, marginTop: 12 }}>
               {activeGoals.length} active · {completedGoals.length} completed
             </Text>
           </View>
@@ -80,17 +86,17 @@ export function GoalsScreen() {
             renderItem={({ item, index }) => (
               <>
                 {index === 0 && activeGoals.length > 0 && (
-                  <SectionHeader title="Active Goals" className="px-4 mb-3" />
+                  <SectionHeader title="Active Goals" />
                 )}
                 {index === activeGoals.length && completedGoals.length > 0 && (
-                  <SectionHeader title="Completed" className="px-4 mt-6 mb-3" />
+                  <SectionHeader title="Completed" />
                 )}
-                <View className="px-4">
+                <View style={{ paddingHorizontal: 20 }}>
                   <GoalCard goal={item} onPress={() => {}} />
                 </View>
               </>
             )}
-            contentContainerStyle={{ paddingBottom: 120 }}
+            contentContainerStyle={{ paddingBottom: 100 }}
             showsVerticalScrollIndicator={false}
           />
         </>
@@ -100,15 +106,18 @@ export function GoalsScreen() {
           title="Start your savings journey"
           description="Set a goal and watch your progress grow as you save towards it."
           actionLabel="Create Goal"
-          onAction={() => setShowForm(true)}
+          onAction={handleOpenForm}
         />
       )}
 
-      <FAB onPress={() => setShowForm(true)} />
-
-      <Modal visible={showForm} onClose={() => setShowForm(false)} title="Create Goal">
-        <GoalForm onSubmit={handleCreate} loading={createGoalMutation.isPending} />
-      </Modal>
-    </SafeAreaView>
+      {/* Floating + button */}
+      <View style={{ position: 'absolute', bottom: 100, right: 20 }}>
+        <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: theme.accent200, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 10, elevation: 8 }}>
+          <Pressable onPress={handleOpenForm} style={({ pressed }) => ({ width: 56, height: 56, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.8 : 1 })}>
+            <Plus size={24} color={theme.textOnAccent} strokeWidth={2.5} />
+          </Pressable>
+        </View>
+      </View>
+    </View>
   );
 }

@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, SectionList } from 'react-native';
 import { TransactionCard } from './transaction-card';
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 import type { TransactionSection } from '../types';
 
 interface TransactionListProps {
@@ -18,22 +20,25 @@ export function TransactionList({
   onRefresh,
   refreshing,
 }: TransactionListProps) {
+  const theme = useTheme();
+
   return (
     <SectionList
       sections={sections}
       keyExtractor={(item) => item.id}
       renderSectionHeader={({ section: { title, data } }) => (
         <View
-          className="flex-row items-center justify-between px-6 bg-[#FAFAF8] dark:bg-gray-950"
-          style={{ paddingTop: 20, paddingBottom: 10 }}
+          className="flex-row items-center justify-between px-6"
+          style={{ paddingTop: 20, paddingBottom: 10, backgroundColor: theme.screenBg }}
         >
           <Text
-            className="text-xs font-bold text-gray-400 uppercase"
-            style={{ letterSpacing: 1.2 }}
+            style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.2, color: theme.textMuted, fontFamily: fonts.heading }}
           >
             {title}
           </Text>
-          <Text className="text-xs font-semibold text-gray-300 dark:text-gray-600">
+          <Text
+            style={{ fontSize: 12, color: theme.textMuted, fontFamily: fonts.semibold }}
+          >
             {data.length} {data.length === 1 ? 'item' : 'items'}
           </Text>
         </View>

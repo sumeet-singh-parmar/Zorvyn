@@ -3,9 +3,8 @@ import { View, Text } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { CurrencyText } from '@components/shared/currency-text';
 import { TrendingUp, TrendingDown, Target } from 'lucide-react-native';
-
-const accent = require('@theme/accent');
-const semantic = require('@theme/semantic');
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 
 interface QuickStatsProps {
   income: number;
@@ -14,6 +13,8 @@ interface QuickStatsProps {
 }
 
 export function QuickStats({ income, expense, savingsRate }: QuickStatsProps) {
+  const theme = useTheme();
+
   return (
     <View className="flex-row gap-3">
       {/* Income Card */}
@@ -21,27 +22,27 @@ export function QuickStats({ income, expense, savingsRate }: QuickStatsProps) {
         <View
           className="rounded-2xl p-4 overflow-hidden"
           style={{
-            backgroundColor: semantic.income.tint,
+            backgroundColor: theme.incomeTint,
             borderWidth: 1,
-            borderColor: semantic.income.light + '30',
+            borderColor: theme.income + '30',
           }}
         >
           <View className="flex-row items-center mb-2">
             <View
               className="rounded-full p-2"
-              style={{ backgroundColor: semantic.income.light + '30' }}
+              style={{ backgroundColor: theme.income + '30' }}
             >
-              <TrendingUp size={16} color={semantic.income.DEFAULT} />
+              <TrendingUp size={16} color={theme.income} />
             </View>
           </View>
-          <Text className="text-xs font-medium text-gray-600 dark:text-gray-400 mt-2">
+          <Text style={{ fontSize: 12, fontFamily: fonts.medium, color: theme.textSecondary, marginTop: 8 }}>
             Income
           </Text>
           <CurrencyText
             amount={income}
             compact
-            className="text-lg font-bold mt-1"
-            style={{ color: semantic.income.DEFAULT }}
+            className="text-lg mt-1"
+            style={{ color: theme.income, fontFamily: fonts.heading }}
           />
         </View>
       </Animated.View>
@@ -51,27 +52,27 @@ export function QuickStats({ income, expense, savingsRate }: QuickStatsProps) {
         <View
           className="rounded-2xl p-4 overflow-hidden"
           style={{
-            backgroundColor: semantic.expense.tint,
+            backgroundColor: theme.expenseTint,
             borderWidth: 1,
-            borderColor: semantic.expense.light + '30',
+            borderColor: theme.expense + '30',
           }}
         >
           <View className="flex-row items-center mb-2">
             <View
               className="rounded-full p-2"
-              style={{ backgroundColor: semantic.expense.light + '30' }}
+              style={{ backgroundColor: theme.expense + '30' }}
             >
-              <TrendingDown size={16} color={semantic.expense.DEFAULT} />
+              <TrendingDown size={16} color={theme.expense} />
             </View>
           </View>
-          <Text className="text-xs font-medium text-gray-600 dark:text-gray-400 mt-2">
+          <Text style={{ fontSize: 12, fontFamily: fonts.medium, color: theme.textSecondary, marginTop: 8 }}>
             Expenses
           </Text>
           <CurrencyText
             amount={expense}
             compact
-            className="text-lg font-bold mt-1"
-            style={{ color: semantic.expense.DEFAULT }}
+            className="text-lg mt-1"
+            style={{ color: theme.expense, fontFamily: fonts.heading }}
           />
         </View>
       </Animated.View>
@@ -81,25 +82,29 @@ export function QuickStats({ income, expense, savingsRate }: QuickStatsProps) {
         <View
           className="rounded-2xl p-4 overflow-hidden"
           style={{
-            backgroundColor: accent.tint,
+            backgroundColor: theme.tint,
             borderWidth: 1,
-            borderColor: accent.ring,
+            borderColor: theme.ring,
           }}
         >
           <View className="flex-row items-center mb-2">
             <View
               className="rounded-full p-2"
-              style={{ backgroundColor: accent.ring }}
+              style={{ backgroundColor: theme.ring }}
             >
-              <Target size={16} color={accent[500]} />
+              <Target size={16} color={theme.accent500} />
             </View>
           </View>
-          <Text className="text-xs font-medium text-gray-600 dark:text-gray-400 mt-2">
+          <Text style={{ fontSize: 12, fontFamily: fonts.medium, color: theme.textSecondary, marginTop: 8 }}>
             Savings Rate
           </Text>
           <Text
-            className="text-lg font-bold mt-1"
-            style={{ color: savingsRate >= 0 ? semantic.income.DEFAULT : semantic.expense.DEFAULT }}
+            style={{
+              fontSize: 18,
+              fontFamily: fonts.heading,
+              marginTop: 4,
+              color: savingsRate >= 0 ? theme.income : theme.expense,
+            }}
           >
             {savingsRate}%
           </Text>

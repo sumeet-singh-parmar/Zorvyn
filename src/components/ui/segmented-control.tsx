@@ -6,9 +6,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useEffect } from 'react';
-import { useColorScheme } from 'nativewind';
-
-const accent = require('@theme/accent');
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 
 interface SegmentedControlProps {
   options: string[];
@@ -23,8 +22,7 @@ export function SegmentedControl({
   onSelect,
   className = '',
 }: SegmentedControlProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useTheme();
   const selectedIndex = options.indexOf(selected);
   const translateX = useSharedValue(0);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -49,7 +47,7 @@ export function SegmentedControl({
     <View
       onLayout={handleLayout}
       className={`flex-row rounded-2xl p-1 ${className}`}
-      style={{ backgroundColor: isDark ? accent.cardDark : accent.surfaceLight }}
+      style={{ backgroundColor: theme.surfaceBg }}
     >
       {segmentWidth > 0 && (
         <Animated.View
@@ -58,7 +56,7 @@ export function SegmentedControl({
             indicatorStyle,
             {
               left: 4,
-              backgroundColor: isDark ? accent.screenBg : accent.cardLight,
+              backgroundColor: theme.cardBg,
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 1 },
               shadowOpacity: 0.08,
@@ -75,11 +73,11 @@ export function SegmentedControl({
           className="flex-1 items-center py-3 z-10"
         >
           <Text
-            className={`text-sm font-semibold ${
-              selected === option
-                ? 'text-accent-700'
-                : 'text-gray-500'
-            }`}
+            style={{
+              fontSize: 14,
+              fontFamily: fonts.semibold,
+              color: selected === option ? theme.accent700 : theme.textMuted,
+            }}
           >
             {option}
           </Text>

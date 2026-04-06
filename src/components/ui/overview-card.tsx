@@ -34,9 +34,9 @@ export function OverviewCard({
   const { hue, saturation } = useThemeStore();
 
   const isDark = useIsDark();
-  const cardBg = isDark ? hslToRgba(hue, saturation * 0.12, 14, 1) : hslToRgba(hue, saturation * 0.15, 95, 0.6);
-  const borderColor = isDark ? hslToRgba(hue, saturation * 0.1, 22, 1) : theme.border;
-  const dividerColor = isDark ? hslToRgba(hue, saturation * 0.08, 25, 1) : theme.border;
+  const cardBg = isDark ? hslToRgba(hue, saturation * 0.12, 14, 1) : hslToRgba(hue, saturation * 0.5, 92, 0.7);
+  const borderColor = isDark ? hslToRgba(hue, saturation * 0.1, 22, 1) : hslToRgba(hue, saturation * 0.3, 78, 1);
+  const dividerColor = isDark ? hslToRgba(hue, saturation * 0.08, 25, 1) : hslToRgba(hue, saturation * 0.25, 82, 1);
 
   return (
     <View

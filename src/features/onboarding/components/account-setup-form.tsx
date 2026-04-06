@@ -1,35 +1,32 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
-import { useColorScheme } from 'nativewind';
 import { Input } from '@components/ui/input';
 import { AmountInput } from '@components/shared/amount-input';
 import { Button } from '@components/ui/button';
 import { Briefcase, DollarSign, CreditCard } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 import type { AccountType } from '@core/models';
-
-const accent = require('@theme/accent');
-const semantic = require('@theme/semantic');
 
 interface AccountSetupFormProps {
   onSubmit: (name: string, type: AccountType, balance: number) => void;
   loading?: boolean;
 }
 
-const ACCOUNT_TYPES: { type: AccountType; label: string; icon: React.ComponentType<any>; colors: [string, string] }[] = [
-  { type: 'bank', label: 'Bank', icon: Briefcase, colors: [accent[500], accent[600]] },
-  { type: 'cash', label: 'Cash', icon: DollarSign, colors: [semantic.income.DEFAULT, semantic.income[600]] },
-  { type: 'wallet', label: 'Wallet', icon: CreditCard, colors: [semantic.transfer.DEFAULT, semantic.transfer[600]] },
-  { type: 'credit_card', label: 'Credit', icon: CreditCard, colors: [semantic.warning[500], semantic.warning.dark] },
-];
-
 export function AccountSetupForm({ onSubmit, loading }: AccountSetupFormProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useTheme();
   const [name, setName] = useState('');
   const [type, setType] = useState<AccountType>('bank');
   const [balance, setBalance] = useState('');
   const [error, setError] = useState('');
+
+  const ACCOUNT_TYPES: { type: AccountType; label: string; icon: React.ComponentType<any>; colors: [string, string] }[] = [
+    { type: 'bank', label: 'Bank', icon: Briefcase, colors: [theme.accent500, theme.accent600] },
+    { type: 'cash', label: 'Cash', icon: DollarSign, colors: [theme.income, theme.income] },
+    { type: 'wallet', label: 'Wallet', icon: CreditCard, colors: [theme.transfer, theme.transfer] },
+    { type: 'credit_card', label: 'Credit', icon: CreditCard, colors: [theme.warning, theme.warning] },
+  ];
 
   const handleSubmit = () => {
     if (!name.trim()) {
@@ -53,7 +50,7 @@ export function AccountSetupForm({ onSubmit, loading }: AccountSetupFormProps) {
       />
 
       {/* Account Type Selector */}
-      <Text className="text-sm font-semibold text-gray-700 mb-3">
+      <Text style={{ fontSize: 14, fontFamily: fonts.semibold, color: theme.textPrimary, marginBottom: 12 }}>
         Account Type
       </Text>
       <View className="flex-row flex-wrap mb-6 gap-3">
@@ -63,15 +60,16 @@ export function AccountSetupForm({ onSubmit, loading }: AccountSetupFormProps) {
             <Pressable
               key={item.type}
               onPress={() => setType(item.type)}
-              className={`flex-1 min-w-[45%] items-center py-4 rounded-2xl ${
-                isSelected
-                  ? 'bg-accent-50 border-2 border-accent-400'
-                  : 'border border-gray-100'
-              }`}
-              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1, backgroundColor: isSelected ? undefined : (isDark ? accent.surfaceDark : accent.surfaceLight) }]}
+              className="flex-1 min-w-[45%] items-center py-4 rounded-2xl"
+              style={({ pressed }) => [{
+                opacity: pressed ? 0.7 : 1,
+                backgroundColor: isSelected ? theme.tint : theme.surfaceBg,
+                borderWidth: isSelected ? 2 : 1,
+                borderColor: isSelected ? theme.accent400 : theme.border,
+              }]}
             >
               <LinearGradient
-                colors={isSelected ? item.colors : ['#E5E7EB', '#D1D5DB']}
+                colors={isSelected ? item.colors : [theme.border, theme.borderStrong]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
@@ -85,13 +83,15 @@ export function AccountSetupForm({ onSubmit, loading }: AccountSetupFormProps) {
               >
                 {React.createElement(item.icon, {
                   size: 20,
-                  color: isSelected ? '#fff' : '#6B7280',
+                  color: isSelected ? theme.textOnAccent : theme.textMuted,
                 })}
               </LinearGradient>
               <Text
-                className={`text-sm font-semibold ${
-                  isSelected ? 'text-accent-700' : 'text-gray-500'
-                }`}
+                style={{
+                  fontSize: 14,
+                  fontFamily: fonts.semibold,
+                  color: isSelected ? theme.accent600 : theme.textSecondary,
+                }}
               >
                 {item.label}
               </Text>
@@ -101,10 +101,10 @@ export function AccountSetupForm({ onSubmit, loading }: AccountSetupFormProps) {
       </View>
 
       {/* Starting Balance */}
-      <Text className="text-sm font-semibold text-gray-700 mb-3">
+      <Text style={{ fontSize: 14, fontFamily: fonts.semibold, color: theme.textPrimary, marginBottom: 12 }}>
         Starting Balance
       </Text>
-      <View className="mb-6 rounded-2xl border border-gray-100 overflow-hidden" style={{ backgroundColor: isDark ? accent.surfaceDark : accent.surfaceLight }}>
+      <View className="mb-6 rounded-2xl overflow-hidden" style={{ backgroundColor: theme.surfaceBg, borderWidth: 1, borderColor: theme.border }}>
         <AmountInput value={balance} onChangeText={setBalance} autoFocus={false} />
       </View>
 
@@ -118,7 +118,7 @@ export function AccountSetupForm({ onSubmit, loading }: AccountSetupFormProps) {
         />
       </View>
 
-      <Text className="text-center text-sm text-gray-400 mb-2">
+      <Text style={{ textAlign: 'center', fontSize: 14, fontFamily: fonts.body, color: theme.textMuted, marginBottom: 8 }}>
         You can add more accounts anytime
       </Text>
     </View>

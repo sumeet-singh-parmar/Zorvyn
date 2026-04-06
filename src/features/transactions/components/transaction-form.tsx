@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
-import { useColorScheme } from 'nativewind';
+import { View, Text, Pressable } from 'react-native';
 import { AmountInput } from '@components/shared/amount-input';
 import { SegmentedControl } from '@components/ui/segmented-control';
 import { Input } from '@components/ui/input';
@@ -9,9 +8,9 @@ import { AccountPicker } from '@components/shared/account-picker';
 import { CategoryPicker } from './category-picker';
 import { CreditCard, ChevronDown, Calendar, Edit3, Check } from 'lucide-react-native';
 import { useTransactionForm } from '../hooks/use-transaction-form';
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 import type { TransactionType } from '@core/models';
-
-const accent = require('@theme/accent');
 
 interface TransactionFormProps {
   onSuccess: () => void;
@@ -30,8 +29,7 @@ const reverseTypeMap: Record<TransactionType, string> = {
 };
 
 export function TransactionForm({ onSuccess }: TransactionFormProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useTheme();
   const form = useTransactionForm();
   const [accountPickerVisible, setAccountPickerVisible] = useState(false);
   const [error, setError] = useState('');
@@ -48,7 +46,7 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
   };
 
   return (
-    <ScrollView className="flex-1" style={{ backgroundColor: isDark ? accent.cardDark : accent.cardLight }} showsVerticalScrollIndicator={false}>
+    <View style={{ flex: 1 }}>
       {/* Hero Amount Input */}
       <View className="px-6 py-8">
         <AmountInput value={form.amount} onChangeText={form.setAmount} />
@@ -66,7 +64,10 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
       {/* Category Picker */}
       {form.type !== 'transfer' && (
         <View className="px-6 mb-8">
-          <Text className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 uppercase tracking-wide">
+          <Text
+            className="mb-4"
+            style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, color: theme.textSecondary, fontFamily: fonts.heading }}
+          >
             Category
           </Text>
           <CategoryPicker
@@ -79,39 +80,46 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
 
       {/* Account Picker */}
       <View className="px-6 mb-6">
-        <Text className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide">
+        <Text
+          className="mb-3"
+          style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, color: theme.textSecondary, fontFamily: fonts.heading }}
+        >
           Account
         </Text>
-        <Pressable
-          onPress={() => setAccountPickerVisible(true)}
-          className="flex-row items-center rounded-xl px-4 py-4"
-          style={{ backgroundColor: isDark ? accent.surfaceDark : accent.surfaceLight }}
-        >
-          <CreditCard size={20} color="#9CA3AF" />
-          <Text className="flex-1 ml-3 text-base font-medium text-gray-900 dark:text-gray-200">
-            {form.accounts.find((a) => a.id === form.accountId)?.name ?? 'Select account'}
-          </Text>
-          <ChevronDown size={20} color="#9CA3AF" />
+        <Pressable onPress={() => setAccountPickerVisible(true)} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: theme.surfaceBg, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14 }}>
+            <CreditCard size={20} color={theme.textMuted} />
+            <Text style={{ flex: 1, marginLeft: 12, fontSize: 16, color: theme.textPrimary, fontFamily: fonts.medium }}>
+              {form.accounts.find((a) => a.id === form.accountId)?.name ?? 'Select account'}
+            </Text>
+            <ChevronDown size={20} color={theme.textMuted} />
+          </View>
         </Pressable>
       </View>
 
       {/* Date Input */}
       <View className="px-6 mb-6">
-        <Text className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide">
+        <Text
+          className="mb-3"
+          style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, color: theme.textSecondary, fontFamily: fonts.heading }}
+        >
           Date
         </Text>
         <Input
           value={form.date}
           onChangeText={form.setDate}
           placeholder="YYYY-MM-DD"
-          leftIcon={<Calendar size={20} color="#9CA3AF" />}
+          leftIcon={<Calendar size={20} color={theme.textMuted} />}
           containerClassName="rounded-xl"
         />
       </View>
 
       {/* Notes Input */}
       <View className="px-6 mb-6">
-        <Text className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide">
+        <Text
+          className="mb-3"
+          style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, color: theme.textSecondary, fontFamily: fonts.heading }}
+        >
           Notes (optional)
         </Text>
         <Input
@@ -119,14 +127,19 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
           onChangeText={form.setNotes}
           placeholder="e.g. Coffee at Starbucks"
           multiline
-          leftIcon={<Edit3 size={20} color="#9CA3AF" />}
+          leftIcon={<Edit3 size={20} color={theme.textMuted} />}
           containerClassName="rounded-xl"
         />
       </View>
 
       {/* Error Message */}
       {error ? (
-        <Text className="text-red-500 text-sm text-center mb-4 font-medium px-6">{error}</Text>
+        <Text
+          className="text-center mb-4 px-6"
+          style={{ fontSize: 14, color: theme.expense, fontFamily: fonts.medium }}
+        >
+          {error}
+        </Text>
       ) : null}
 
       {/* Save Button */}
@@ -136,7 +149,7 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
           onPress={handleSave}
           loading={form.createMutation.isPending}
           size="lg"
-          leftIcon={<Check size={20} color="#FFFFFF" strokeWidth={2.5} />}
+          leftIcon={<Check size={20} color={theme.textOnAccent} strokeWidth={2.5} />}
         />
       </View>
 
@@ -147,6 +160,6 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
         selected={form.accountId}
         onSelect={form.setAccountId}
       />
-    </ScrollView>
+    </View>
   );
 }

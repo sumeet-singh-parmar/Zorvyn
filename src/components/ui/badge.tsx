@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-
-const accent = require('@theme/accent');
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 
 interface BadgeProps {
   label: string;
@@ -12,20 +12,35 @@ interface BadgeProps {
 
 export function Badge({
   label,
-  color = accent[500],
+  color,
   variant = 'filled',
   size = 'sm',
 }: BadgeProps) {
-  const paddingClass = size === 'sm' ? 'px-3 py-1' : 'px-4 py-1.5';
-  const textSize = size === 'sm' ? 'text-xs' : 'text-sm';
+  const theme = useTheme();
+  const resolvedColor = color ?? theme.accent500;
+
+  const paddingHorizontal = size === 'sm' ? 12 : 16;
+  const paddingVertical = size === 'sm' ? 4 : 6;
+  const fontSize = size === 'sm' ? 12 : 14;
 
   if (variant === 'outline') {
     return (
       <View
-        className={`rounded-full ${paddingClass}`}
-        style={{ borderWidth: 1.5, borderColor: color }}
+        style={{
+          borderRadius: 9999,
+          paddingHorizontal,
+          paddingVertical,
+          borderWidth: 1.5,
+          borderColor: resolvedColor,
+        }}
       >
-        <Text className={`${textSize} font-semibold`} style={{ color }}>
+        <Text
+          style={{
+            fontSize,
+            fontFamily: fonts.semibold,
+            color: resolvedColor,
+          }}
+        >
           {label}
         </Text>
       </View>
@@ -34,10 +49,20 @@ export function Badge({
 
   return (
     <View
-      className={`rounded-full ${paddingClass}`}
-      style={{ backgroundColor: color + '1A' }}
+      style={{
+        borderRadius: 9999,
+        paddingHorizontal,
+        paddingVertical,
+        backgroundColor: resolvedColor + '1A',
+      }}
     >
-      <Text className={`${textSize} font-semibold`} style={{ color }}>
+      <Text
+        style={{
+          fontSize,
+          fontFamily: fonts.semibold,
+          color: resolvedColor,
+        }}
+      >
         {label}
       </Text>
     </View>

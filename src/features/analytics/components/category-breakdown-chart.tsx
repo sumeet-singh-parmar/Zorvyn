@@ -1,94 +1,113 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { useColorScheme } from 'nativewind';
 import { PieChart } from 'react-native-gifted-charts';
-import { Card } from '@components/ui/card';
-import { CategoryIcon } from '@components/shared/category-icon';
 import { CurrencyText } from '@components/shared/currency-text';
+import { useTheme } from '@theme/use-theme';
+import { useThemeStore } from '@stores/theme-store';
+import { hslToHex } from '@theme/hsl';
+import { fonts } from '@theme/fonts';
 import type { CategorySpending } from '../types';
-
-const accent = require('@theme/accent');
 
 interface CategoryBreakdownChartProps {
   data: CategorySpending[];
 }
 
 export function CategoryBreakdownChart({ data }: CategoryBreakdownChartProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useTheme();
+  const { hue, saturation } = useThemeStore();
 
   if (data.length === 0) {
     return (
-      <Card className="overflow-hidden" style={{ backgroundColor: isDark ? accent.cardDark : accent.cardLight }}>
-        <View className="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
-          <Text className="text-lg font-semibold text-gray-900 dark:text-gray-200">
-            Spending by Category
-          </Text>
-        </View>
-        <View className="items-center py-12">
-          <Text className="text-sm text-gray-400 dark:text-gray-500">No spending data yet</Text>
-        </View>
-      </Card>
+      <View style={{ backgroundColor: theme.cardBg, borderRadius: 20, borderWidth: 1, borderColor: theme.border, padding: 24, alignItems: 'center' }}>
+        <Text style={{ fontSize: 15, fontFamily: fonts.heading, color: theme.textPrimary }}>
+          No spending data yet
+        </Text>
+      </View>
     );
   }
 
-  const pieData = data.slice(0, 6).map((item) => ({
+  // Generate accent-harmonious colors
+  const sliceColors = data.slice(0, 6).map((_, i) => {
+    const shift = i * 40;
+    return hslToHex((hue + shift) % 360, Math.max(45, saturation * 0.6), 50 + (i * 4));
+  });
+
+  const pieData = data.slice(0, 6).map((item, i) => ({
     value: item.amount,
-    color: item.color,
+    color: sliceColors[i],
   }));
 
   const total = data.reduce((sum, item) => sum + item.amount, 0);
 
   return (
-    <Card className="overflow-hidden" style={{ backgroundColor: isDark ? accent.cardDark : accent.cardLight }}>
+    <View style={{ backgroundColor: theme.cardBg, borderRadius: 20, borderWidth: 1, borderColor: theme.border, overflow: 'hidden' }}>
       {/* Header */}
-      <View className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
-        <Text className="text-lg font-semibold text-gray-900 dark:text-gray-200">
+      <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12 }}>
+        <Text style={{ fontSize: 17, fontFamily: fonts.heading, color: theme.textPrimary }}>
           Spending by Category
-        </Text>
-        <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Total: <CurrencyText amount={total} className="text-gray-900 dark:text-gray-200 font-semibold" />
         </Text>
       </View>
 
       {/* Chart */}
-      <View className="items-center py-8">
+      <View style={{ alignItems: 'center', paddingVertical: 16 }}>
         <PieChart
           data={pieData}
           donut
-          innerRadius={50}
-          radius={75}
+          innerRadius={55}
+          radius={85}
+          innerCircleColor={theme.cardBg}
           isAnimated
-          animationDuration={800}
+          animationDuration={600}
           focusOnPress
+          centerLabelComponent={() => (
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: 11, fontFamily: fonts.medium, color: theme.textMuted }}>Total</Text>
+              <CurrencyText
+                amount={total}
+                compact
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.6}
+                style={{ fontSize: 18, fontFamily: fonts.black, color: theme.textPrimary, marginTop: 2 }}
+              />
+            </View>
+          )}
         />
       </View>
 
       {/* Legend */}
-      <View className="px-5 pb-5 gap-3 max-h-56">
-        {data.map((item) => (
-          <View key={item.categoryId} className="flex-row items-center">
-            {/* Color dot */}
-            <View
-              className="w-3 h-3 rounded-full mr-3"
-              style={{ backgroundColor: item.color }}
-            />
-
-            {/* Category info */}
-            <Text className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-              {item.categoryName}
-            </Text>
-
-            {/* Amount */}
-            <View className="flex-row items-baseline gap-2">
-              <CurrencyText amount={item.amount} className="text-sm font-semibold text-gray-900 dark:text-gray-200" />
-              <Text className="text-xs font-medium text-gray-500 dark:text-gray-400 w-8 text-right">
+      <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
+        {data.slice(0, 6).map((item, i) => (
+          <View
+            key={item.categoryId}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingVertical: 10,
+              borderTopWidth: 1,
+              borderTopColor: theme.border,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+              <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: sliceColors[i], marginRight: 10 }} />
+              <Text style={{ fontSize: 14, fontFamily: fonts.medium, color: theme.textPrimary, flex: 1 }}>
+                {item.categoryName}
+              </Text>
+            </View>
+            <View style={{ alignItems: 'flex-end', marginLeft: 12 }}>
+              <Text style={{ fontSize: 14, fontFamily: fonts.heading, color: theme.textPrimary }}>
                 {item.percentage}%
               </Text>
+              <CurrencyText
+                amount={item.amount}
+                compact
+                style={{ fontSize: 12, fontFamily: fonts.body, color: theme.textMuted }}
+              />
             </View>
           </View>
         ))}
       </View>
-    </Card>
+    </View>
   );
 }

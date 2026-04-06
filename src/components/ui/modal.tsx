@@ -1,76 +1,86 @@
-import React from 'react';
-import {
-  Modal as RNModal,
-  View,
-  Text,
-  Pressable,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  runOnJS,
-} from 'react-native-reanimated';
-import { useEffect } from 'react';
-import { useColorScheme } from 'nativewind';
-
-const accent = require('@theme/accent');
+import React, { useCallback, useEffect, useRef, useMemo } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import BottomSheet, {
+  BottomSheetModal,
+  BottomSheetScrollView,
+  BottomSheetBackdrop,
+} from '@gorhom/bottom-sheet';
+import { useTheme } from '@theme/use-theme';
+import { useThemeStore } from '@stores/theme-store';
+import { hslToRgba } from '@theme/hsl';
+import { fonts } from '@theme/fonts';
 
 interface ModalProps {
   visible: boolean;
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
+  snapPoints?: (string | number)[];
 }
 
-export function Modal({ visible, onClose, title, children }: ModalProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const translateY = useSharedValue(500);
+export function Modal({ visible, onClose, title, children, snapPoints: customSnapPoints }: ModalProps) {
+  const theme = useTheme();
+  const { hue, saturation } = useThemeStore();
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const snapPoints = useMemo(() => customSnapPoints ?? ['50%', '80%'], [customSnapPoints]);
 
   useEffect(() => {
     if (visible) {
-      translateY.value = withSpring(0, { damping: 16, stiffness: 180, mass: 1 });
+      bottomSheetRef.current?.present();
     } else {
-      translateY.value = 500;
+      bottomSheetRef.current?.dismiss();
     }
   }, [visible]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
+  const handleDismiss = useCallback(() => {
+    onClose();
+  }, [onClose]);
+
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.5}
+      />
+    ),
+    []
+  );
+
+  const handleColor = hslToRgba(hue, saturation * 0.3, 50, 0.4);
 
   return (
-    <RNModal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-      statusBarTranslucent
+    <BottomSheetModal
+      ref={bottomSheetRef}
+      snapPoints={snapPoints}
+      onDismiss={handleDismiss}
+      backdropComponent={renderBackdrop}
+      enablePanDownToClose
+      backgroundStyle={{
+        backgroundColor: theme.cardBg,
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+      }}
+      handleIndicatorStyle={{
+        backgroundColor: handleColor,
+        width: 40,
+        height: 4,
+        borderRadius: 2,
+        marginBottom: 15,
+      }}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+      <BottomSheetScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
       >
-        <Pressable className="flex-1 bg-black/50" onPress={onClose} />
-        <Animated.View
-          className="rounded-t-3xl px-6 pt-4 pb-10 max-h-[90%]"
-          style={[animatedStyle, { backgroundColor: isDark ? accent.cardDark : accent.cardLight }]}
-        >
-          <View className="w-12 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600 self-center mb-5" />
-          {title && (
-            <Text className="text-xl font-bold text-gray-900 dark:text-gray-200 mb-5">
-              {title}
-            </Text>
-          )}
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {children}
-          </ScrollView>
-        </Animated.View>
-      </KeyboardAvoidingView>
-    </RNModal>
+        {title && (
+          <Text style={{ fontFamily: fonts.heading, fontSize: 20, color: theme.textPrimary, marginBottom: 16 }}>
+            {title}
+          </Text>
+        )}
+        {children}
+      </BottomSheetScrollView>
+    </BottomSheetModal>
   );
 }

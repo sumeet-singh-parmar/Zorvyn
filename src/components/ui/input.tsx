@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, type TextInputProps } from 'react-native';
-import { useColorScheme } from 'nativewind';
-
-const accent = require('@theme/accent');
+import { useTheme, useIsDark } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 
 interface InputProps extends Omit<TextInputProps, 'className'> {
   label?: string;
@@ -21,8 +20,8 @@ export function Input({
   multiline,
   ...props
 }: InputProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useTheme();
+  const isDark = useIsDark();
   const [focused, setFocused] = useState(false);
 
   const handleFocus = (e: any) => {
@@ -36,10 +35,10 @@ export function Input({
   };
 
   const borderColor = error
-    ? '#F87171'
+    ? theme.expense
     : focused
-      ? accent.focus
-      : isDark ? '#374151' : '#E5E7EB';
+      ? theme.accent400
+      : theme.border;
 
   return (
     <View style={containerClassName === 'rounded-xl' ? { borderRadius: 12 } : undefined}>
@@ -47,8 +46,8 @@ export function Input({
         <Text
           style={{
             fontSize: 14,
-            fontWeight: '600',
-            color: isDark ? '#D1D5DB' : '#374151',
+            fontFamily: fonts.semibold,
+            color: theme.textSecondary,
             marginBottom: 8,
           }}
         >
@@ -64,7 +63,7 @@ export function Input({
           borderRadius: 16,
           paddingHorizontal: 16,
           paddingVertical: 14,
-          backgroundColor: isDark ? accent.surfaceDark : accent.surfaceLight,
+          backgroundColor: theme.surfaceBg,
         }}
       >
         {leftIcon && (
@@ -76,13 +75,14 @@ export function Input({
           style={{
             flex: 1,
             fontSize: 16,
-            color: isDark ? '#F9FAFB' : '#111827',
+            fontFamily: fonts.body,
+            color: theme.textPrimary,
             padding: 0,
             margin: 0,
             minHeight: multiline ? 60 : undefined,
             textAlignVertical: multiline ? 'top' : 'center',
           }}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={theme.textMuted}
           onFocus={handleFocus}
           onBlur={handleBlur}
           multiline={multiline}
@@ -98,8 +98,8 @@ export function Input({
         <Text
           style={{
             fontSize: 14,
-            fontWeight: '500',
-            color: '#EF4444',
+            fontFamily: fonts.medium,
+            color: theme.expense,
             marginTop: 6,
           }}
         >

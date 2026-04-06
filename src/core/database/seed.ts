@@ -1,8 +1,43 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { generateUUID } from '@core/utils/uuid';
 
+async function ensureDefaultAccounts(db: SQLiteDatabase): Promise<void> {
+  const now = new Date().toISOString();
+
+  // Ensure a cash account exists
+  const cashExists = await db.getFirstAsync<{ count: number }>(
+    "SELECT COUNT(*) as count FROM accounts WHERE type = 'cash' AND deleted_at IS NULL"
+  );
+  console.log('[Zorvyn] 🏦 Cash accounts:', cashExists?.count ?? 0);
+  if (!cashExists || cashExists.count === 0) {
+    console.log('[Zorvyn] ✅ Creating default Cash account');
+    await db.runAsync(
+      `INSERT INTO accounts (id, name, type, balance, currency_code, icon, color, is_default, sort_order, created_at, updated_at, sync_status)
+       VALUES (?, 'Cash', 'cash', 0, 'INR', 'banknote', '#38512B', 0, 1, ?, ?, 'synced')`,
+      [generateUUID(), now, now]
+    );
+  }
+
+  // Ensure at least one bank account exists
+  const bankExists = await db.getFirstAsync<{ count: number }>(
+    "SELECT COUNT(*) as count FROM accounts WHERE type = 'bank' AND deleted_at IS NULL"
+  );
+  console.log('[Zorvyn] 🏦 Bank accounts:', bankExists?.count ?? 0);
+  if (!bankExists || bankExists.count === 0) {
+    console.log('[Zorvyn] ✅ Creating default Bank account');
+    await db.runAsync(
+      `INSERT INTO accounts (id, name, type, balance, currency_code, icon, color, is_default, sort_order, created_at, updated_at, sync_status)
+       VALUES (?, 'Bank', 'bank', 0, 'INR', 'landmark', '#314972', 1, 0, ?, ?, 'synced')`,
+      [generateUUID(), now, now]
+    );
+  }
+}
+
 export async function seedDatabase(db: SQLiteDatabase): Promise<void> {
-  // Check if already seeded
+  // Ensure default accounts always exist
+  await ensureDefaultAccounts(db);
+
+  // Check if categories already seeded
   const existing = await db.getFirstAsync<{ count: number }>(
     'SELECT COUNT(*) as count FROM categories WHERE deleted_at IS NULL'
   );

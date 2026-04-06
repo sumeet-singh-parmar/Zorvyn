@@ -1,12 +1,7 @@
 import React from 'react';
 import { Pressable, Text, ActivityIndicator, View, type ViewStyle } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useColorScheme } from 'nativewind';
-
+import { useTheme } from '@theme/use-theme';
 import { fonts } from '@theme/fonts';
-import { shadows } from '@theme/shadows';
-
-const accent = require('@theme/accent');
 
 interface ButtonProps {
   title: string;
@@ -16,7 +11,6 @@ interface ButtonProps {
   disabled?: boolean;
   loading?: boolean;
   leftIcon?: React.ReactNode;
-  className?: string;
   style?: ViewStyle;
 }
 
@@ -34,118 +28,71 @@ export function Button({
   disabled = false,
   loading = false,
   leftIcon,
-  className = '',
   style,
 }: ButtonProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useTheme();
   const cfg = sizeConfig[size];
 
   if (variant === 'primary') {
     return (
+      <View style={[{ borderRadius: 50, overflow: 'hidden', backgroundColor: theme.buttonBg }, style]}>
+        <Pressable
+          onPress={onPress}
+          disabled={disabled || loading}
+          style={({ pressed }) => ({
+            opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
+            transform: [{ scale: pressed ? 0.97 : 1 }],
+          })}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: cfg.px, paddingVertical: cfg.py }}>
+            {loading ? (
+              <ActivityIndicator size="small" color={theme.textOnAccent} />
+            ) : (
+              <>
+                {leftIcon && <View style={{ marginRight: cfg.iconGap }}>{leftIcon}</View>}
+                <Text style={{ fontSize: cfg.fontSize, fontFamily: fonts.black, color: theme.textOnAccent, letterSpacing: 0.3 }}>
+                  {title}
+                </Text>
+              </>
+            )}
+          </View>
+        </Pressable>
+      </View>
+    );
+  }
+
+  const variants: Record<string, { bg: string; borderWidth: number; borderColor: string; textColor: string }> = {
+    secondary: { bg: theme.surfaceBg, borderWidth: 0, borderColor: 'transparent', textColor: theme.textPrimary },
+    outline: { bg: 'transparent', borderWidth: 2, borderColor: theme.border, textColor: theme.textPrimary },
+    ghost: { bg: 'transparent', borderWidth: 0, borderColor: 'transparent', textColor: theme.buttonBg },
+    danger: { bg: theme.expenseTint, borderWidth: 1, borderColor: theme.expense + '25', textColor: theme.expense },
+  };
+
+  const vs = variants[variant] ?? variants.secondary;
+
+  return (
+    <View style={[{ borderRadius: 50, overflow: 'hidden', backgroundColor: vs.bg, borderWidth: vs.borderWidth, borderColor: vs.borderColor }, style]}>
       <Pressable
         onPress={onPress}
         disabled={disabled || loading}
-        className="rounded-full overflow-hidden"
-        style={({ pressed }) => [
-          {
-            opacity: disabled ? 0.5 : 1,
-            transform: [{ scale: pressed ? 0.97 : 1 }],
-            ...shadows.accent,
-          },
-          style,
-        ]}
+        style={({ pressed }) => ({
+          opacity: pressed ? 0.75 : disabled ? 0.5 : 1,
+          transform: [{ scale: pressed ? 0.97 : 1 }],
+        })}
       >
-        <LinearGradient
-          colors={disabled ? [accent.disabledStart, accent.disabledEnd] : [accent.gradientStart, accent.gradientMid, accent.gradientEnd]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingHorizontal: cfg.px,
-            paddingVertical: cfg.py,
-            borderRadius: 50,
-          }}
-        >
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: cfg.px, paddingVertical: cfg.py }}>
           {loading ? (
-            <ActivityIndicator size="small" color="#fff" />
+            <ActivityIndicator size="small" color={variant === 'danger' ? theme.expense : theme.buttonBg} />
           ) : (
             <>
-              {leftIcon && (
-                <View style={{ marginRight: cfg.iconGap }}>{leftIcon}</View>
-              )}
-              <Text
-                style={{
-                  fontSize: cfg.fontSize,
-                  fontFamily: fonts.heading,
-                  color: '#FFFFFF',
-                  letterSpacing: 0.3,
-                }}
-              >
+              {leftIcon && <View style={{ marginRight: cfg.iconGap }}>{leftIcon}</View>}
+              <Text style={{ fontSize: cfg.fontSize, fontFamily: fonts.heading, color: vs.textColor, letterSpacing: 0.2 }}>
                 {title}
               </Text>
             </>
           )}
-        </LinearGradient>
+        </View>
       </Pressable>
-    );
-  }
-
-  // Non-primary variants
-  const variantStyles: Record<string, { bg: string; borderWidth: number; borderColor: string; textColor: string }> = {
-    secondary: { bg: isDark ? accent.surfaceDark : accent.surfaceLight, borderWidth: 0, borderColor: 'transparent', textColor: isDark ? '#F3F4F6' : '#111827' },
-    outline: { bg: 'transparent', borderWidth: 2, borderColor: isDark ? '#374151' : '#E5E7EB', textColor: isDark ? '#F3F4F6' : '#111827' },
-    ghost: { bg: 'transparent', borderWidth: 0, borderColor: 'transparent', textColor: accent[500] },
-    danger: { bg: '#EF4444', borderWidth: 0, borderColor: 'transparent', textColor: '#FFFFFF' },
-  };
-
-  const vs = variantStyles[variant] || variantStyles.secondary;
-
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled || loading}
-      className="rounded-full"
-      style={({ pressed }) => [
-        {
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          paddingHorizontal: cfg.px,
-          paddingVertical: cfg.py,
-          backgroundColor: vs.bg,
-          borderWidth: vs.borderWidth,
-          borderColor: vs.borderColor,
-          opacity: pressed ? 0.75 : disabled ? 0.5 : 1,
-          transform: [{ scale: pressed ? 0.97 : 1 }],
-        },
-        style,
-      ]}
-    >
-      {loading ? (
-        <ActivityIndicator
-          size="small"
-          color={variant === 'danger' ? '#fff' : accent[500]}
-        />
-      ) : (
-        <>
-          {leftIcon && (
-            <View style={{ marginRight: cfg.iconGap }}>{leftIcon}</View>
-          )}
-          <Text
-            style={{
-              fontSize: cfg.fontSize,
-              fontWeight: '700',
-              color: vs.textColor,
-              letterSpacing: 0.2,
-            }}
-          >
-            {title}
-          </Text>
-        </>
-      )}
-    </Pressable>
+    </View>
   );
 }

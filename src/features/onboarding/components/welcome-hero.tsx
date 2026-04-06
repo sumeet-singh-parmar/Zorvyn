@@ -3,8 +3,8 @@ import { View, Text } from 'react-native';
 import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { DollarSign, Target, BarChart2, TrendingUp } from 'lucide-react-native';
-
-const accent = require('@theme/accent');
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 
 function FeatureRow({
   icon,
@@ -19,6 +19,7 @@ function FeatureRow({
   subtitle: string;
   delay: number;
 }) {
+  const theme = useTheme();
   return (
     <Animated.View
       entering={FadeInUp.delay(delay).duration(500)}
@@ -37,13 +38,13 @@ function FeatureRow({
           marginRight: 16,
         }}
       >
-        {React.createElement(icon, { size: 22, color: '#fff' })}
+        {React.createElement(icon, { size: 22, color: theme.textOnAccent })}
       </LinearGradient>
       <View className="flex-1">
-        <Text className="text-base font-bold text-gray-900">
+        <Text style={{ fontSize: 16, fontFamily: fonts.heading, color: theme.textPrimary }}>
           {title}
         </Text>
-        <Text className="text-sm text-gray-500 mt-0.5">
+        <Text style={{ fontSize: 14, fontFamily: fonts.body, color: theme.textMuted, marginTop: 2 }}>
           {subtitle}
         </Text>
       </View>
@@ -52,6 +53,8 @@ function FeatureRow({
 }
 
 export function WelcomeHero() {
+  const theme = useTheme();
+
   return (
     <View className="flex-1 items-center justify-center px-4">
       {/* Logo Circle with Gradient */}
@@ -60,7 +63,7 @@ export function WelcomeHero() {
         className="mb-10"
       >
         <LinearGradient
-          colors={['#7C6FF1', accent[500], '#5C4CD4']}
+          colors={[theme.accent400, theme.accent500, theme.accent700]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{
@@ -69,21 +72,21 @@ export function WelcomeHero() {
             borderRadius: 32,
             alignItems: 'center',
             justifyContent: 'center',
-            shadowColor: accent[500],
+            shadowColor: theme.accent500,
             shadowOffset: { width: 0, height: 8 },
             shadowOpacity: 0.35,
             shadowRadius: 20,
             elevation: 12,
           }}
         >
-          <TrendingUp size={48} color="white" />
+          <TrendingUp size={48} color={theme.textOnAccent} />
         </LinearGradient>
       </Animated.View>
 
       {/* App Name */}
       <Animated.Text
         entering={FadeInUp.delay(500).duration(600)}
-        className="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight"
+        style={{ fontSize: 36, fontFamily: fonts.extrabold, color: theme.textPrimary, marginBottom: 8, letterSpacing: -0.5 }}
       >
         Zorvyn
       </Animated.Text>
@@ -91,7 +94,7 @@ export function WelcomeHero() {
       {/* Tagline */}
       <Animated.Text
         entering={FadeInUp.delay(650).duration(600)}
-        className="text-base text-gray-500 text-center mb-12 font-medium"
+        style={{ fontSize: 16, fontFamily: fonts.medium, color: theme.textMuted, textAlign: 'center', marginBottom: 48 }}
       >
         Your personal finance companion
       </Animated.Text>
@@ -100,21 +103,21 @@ export function WelcomeHero() {
       <View className="w-full">
         <FeatureRow
           icon={DollarSign}
-          colors={['#00D9A3', '#00B88A']}
+          colors={[theme.income, theme.income]}
           title="Track Spending"
           subtitle="Monitor every transaction effortlessly"
           delay={800}
         />
         <FeatureRow
           icon={Target}
-          colors={['#4DA6FF', '#3B82F6']}
+          colors={[theme.transfer, theme.accent500]}
           title="Set Goals"
           subtitle="Achieve your financial milestones"
           delay={950}
         />
         <FeatureRow
           icon={BarChart2}
-          colors={['#F59E0B', '#E67E22']}
+          colors={[theme.warning, theme.warning]}
           title="Get Insights"
           subtitle="Smart analytics and spending trends"
           delay={1100}

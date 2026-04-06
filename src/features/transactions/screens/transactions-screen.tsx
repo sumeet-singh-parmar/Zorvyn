@@ -1,61 +1,51 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useColorScheme } from 'nativewind';
-import { useRouter } from 'expo-router';
 import { TransactionFilters } from '../components/transaction-filters';
 import { TransactionContent } from '../components/transaction-content';
 import { Input } from '@components/ui/input';
 import { Search, X } from 'lucide-react-native';
-
-const accent = require('@theme/accent');
+import { useScreenTopPadding } from '@components/shared/edge-fade';
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 
 export function TransactionsScreen() {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const router = useRouter();
+  const topPadding = useScreenTopPadding();
+  const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: isDark ? accent.screenBg : accent.screenBgLight }}>
-      <View className="flex-1">
+    <View style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
         {/* Header */}
-        <View className="px-6 pt-4 pb-3">
-          <View className="mb-4">
-            <Text
-              className="text-3xl font-extrabold text-gray-900 dark:text-gray-200"
-              style={{ letterSpacing: -0.5 }}
-            >
-              Transactions
-            </Text>
-          </View>
+        <View style={{ paddingHorizontal: 20, paddingTop: topPadding, paddingBottom: 12 }}>
+          <Text style={{ fontSize: 28, fontFamily: fonts.black, color: theme.textPrimary, marginBottom: 16 }}>
+            Transactions
+          </Text>
 
           {/* Search */}
           <Input
             placeholder="Search transactions..."
             value={searchQuery}
             onChangeText={setSearchQuery}
-            leftIcon={<Search size={18} color="#9CA3AF" />}
+            leftIcon={<Search size={18} color={theme.textMuted} />}
             rightIcon={
               searchQuery ? (
                 <Pressable onPress={() => setSearchQuery('')}>
-                  <X size={18} color="#9CA3AF" />
+                  <X size={18} color={theme.textMuted} />
                 </Pressable>
               ) : undefined
             }
-            containerClassName="rounded-2xl"
           />
         </View>
 
         {/* Filters */}
-        <View className="pb-1">
+        <View style={{ paddingBottom: 4 }}>
           <TransactionFilters />
         </View>
 
-        {/* Content -- isolated from header re-renders */}
+        {/* Content */}
         <TransactionContent searchQuery={searchQuery} />
       </View>
-
-    </SafeAreaView>
+    </View>
   );
 }

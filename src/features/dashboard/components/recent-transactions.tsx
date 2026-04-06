@@ -3,12 +3,9 @@ import { View, Text, Pressable } from 'react-native';
 import { CategoryIcon } from '@components/shared/category-icon';
 import { CurrencyText } from '@components/shared/currency-text';
 import { getRelativeTime } from '@core/utils/date';
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 import type { Transaction, Category } from '@core/models';
-
-import { useColorScheme } from 'nativewind';
-
-const semantic = require('@theme/semantic');
-const accent = require('@theme/accent');
 
 interface RecentTransactionsProps {
   transactions: Transaction[];
@@ -23,21 +20,20 @@ export function RecentTransactions({
   onSeeAll,
   onPress,
 }: RecentTransactionsProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useTheme();
   const catMap = new Map(categories.map((c) => [c.id, c]));
 
   if (transactions.length === 0) {
     return (
       <View
         className="rounded-2xl p-4"
-        style={{ backgroundColor: isDark ? accent.cardDark : accent[50] }}
+        style={{ backgroundColor: theme.cardBg }}
       >
-        <Text className="text-base font-semibold text-gray-900 dark:text-gray-200 mb-4">
+        <Text style={{ fontSize: 16, fontFamily: fonts.semibold, color: theme.textPrimary, marginBottom: 16 }}>
           Recent Transactions
         </Text>
         <View className="items-center py-6">
-          <Text className="text-sm text-gray-400">No transactions yet</Text>
+          <Text style={{ fontSize: 14, fontFamily: fonts.body, color: theme.textMuted }}>No transactions yet</Text>
         </View>
       </View>
     );
@@ -46,19 +42,19 @@ export function RecentTransactions({
   return (
     <View
       className="rounded-2xl p-4 overflow-hidden"
-      style={{ backgroundColor: isDark ? accent.cardDark : accent.cardLight, borderWidth: 1, borderColor: isDark ? accent[800] : accent[100] }}
+      style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}
     >
       {/* Header */}
       <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-base font-bold text-gray-900 dark:text-gray-200">
+        <Text style={{ fontSize: 16, fontFamily: fonts.heading, color: theme.textPrimary }}>
           Recent
         </Text>
         <Pressable
           onPress={onSeeAll}
           className="px-3 py-1.5 rounded-full"
-          style={{ backgroundColor: accent.tint }}
+          style={{ backgroundColor: theme.tint }}
         >
-          <Text className="text-sm text-accent-600 font-semibold">See All</Text>
+          <Text style={{ fontSize: 14, fontFamily: fonts.semibold, color: theme.accent500 }}>See All</Text>
         </Pressable>
       </View>
 
@@ -72,31 +68,34 @@ export function RecentTransactions({
             <Pressable
               key={tx.id}
               onPress={() => onPress(tx.id)}
-              className={`flex-row items-center py-3.5 ${
-                i > 0 ? 'border-t border-gray-100 dark:border-gray-800' : ''
-              }`}
+              className="flex-row items-center"
+              style={{
+                paddingVertical: 14,
+                borderTopWidth: i > 0 ? 1 : 0,
+                borderTopColor: theme.border,
+              }}
             >
               {/* Icon Badge */}
               <View
                 className="rounded-full p-2.5 mr-3"
                 style={{
-                  backgroundColor: cat?.color ? `${cat.color}15` : (isDark ? accent.surfaceDark : accent.surfaceLight),
+                  backgroundColor: cat?.color ? `${cat.color}15` : theme.surfaceBg,
                 }}
               >
                 <CategoryIcon
                   iconName={cat?.icon ?? 'circle'}
-                  color={cat?.color ?? '#9CA3AF'}
+                  color={cat?.color ?? theme.textMuted}
                   size="sm"
                 />
               </View>
 
               {/* Transaction Details */}
               <View className="flex-1">
-                <Text className="text-sm font-semibold text-gray-900 dark:text-gray-200">
+                <Text style={{ fontSize: 14, fontFamily: fonts.semibold, color: theme.textPrimary }}>
                   {cat?.name ?? 'Uncategorized'}
                 </Text>
                 {tx.notes && (
-                  <Text className="text-xs text-gray-500 dark:text-gray-400 mt-0.5" numberOfLines={1}>
+                  <Text style={{ fontSize: 12, fontFamily: fonts.body, color: theme.textSecondary, marginTop: 2 }} numberOfLines={1}>
                     {tx.notes}
                   </Text>
                 )}
@@ -107,12 +106,13 @@ export function RecentTransactions({
                 <CurrencyText
                   amount={tx.amount}
                   type={tx.type}
-                  className="text-sm font-bold"
+                  className="text-sm"
                   style={{
-                    color: isIncome ? semantic.income.DEFAULT : semantic.expense.DEFAULT,
+                    color: isIncome ? theme.income : theme.expense,
+                    fontFamily: fonts.heading,
                   }}
                 />
-                <Text className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                <Text style={{ fontSize: 12, fontFamily: fonts.body, color: theme.textMuted, marginTop: 2 }}>
                   {getRelativeTime(tx.date)}
                 </Text>
               </View>

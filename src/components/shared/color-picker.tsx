@@ -1,9 +1,7 @@
 import React from 'react';
 import { View, Pressable } from 'react-native';
 import { Check } from 'lucide-react-native';
-import { useColorScheme } from 'nativewind';
-
-const accent = require('@theme/accent');
+import { useTheme } from '@theme/use-theme';
 
 interface ColorPickerProps {
   selected: string;
@@ -19,8 +17,7 @@ const PRESET_COLORS = [
 ];
 
 export function ColorPicker({ selected, onSelect }: ColorPickerProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useTheme();
   return (
     <View className="flex-row flex-wrap gap-2">
       {PRESET_COLORS.map((color) => (
@@ -31,7 +28,7 @@ export function ColorPicker({ selected, onSelect }: ColorPickerProps) {
           style={{
             backgroundColor: color,
             borderWidth: selected === color ? 3 : 0,
-            borderColor: isDark ? accent.cardDark : accent.cardLight,
+            borderColor: theme.cardBg,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: selected === color ? 0.3 : 0,
@@ -40,7 +37,7 @@ export function ColorPicker({ selected, onSelect }: ColorPickerProps) {
           }}
         >
           {selected === color && (
-            <Check size={20} color="#FFFFFF" />
+            <Check size={20} color={theme.textOnAccent} />
           )}
         </Pressable>
       ))}

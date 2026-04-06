@@ -1,14 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { View, FlatList, Text, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useColorScheme } from 'nativewind';
+import { useScreenTopPadding } from '@components/shared/edge-fade';
 import { useBudgets } from '../hooks/use-budgets';
-
-const accent = require('@theme/accent');
 import { BudgetCard } from '../components/budget-card';
 import { BudgetForm } from '../components/budget-form';
-import { FAB } from '@components/ui/fab';
-import { Modal } from '@components/ui/modal';
 import { EmptyState } from '@components/feedback/empty-state';
 import { LoadingState } from '@components/feedback/loading-state';
 import { ErrorState } from '@components/feedback/error-state';
@@ -17,15 +12,18 @@ import { useQuery } from '@tanstack/react-query';
 import { useDatabase } from '@core/providers/database-provider';
 import { CategoryRepository } from '@core/repositories/category-repository';
 import { queryKeys } from '@core/constants/query-keys';
-import { X, PieChart } from 'lucide-react-native';
+import { PieChart, Plus } from 'lucide-react-native';
 import { CurrencyText } from '@components/shared/currency-text';
+import { useGlobalSheet } from '@components/shared/global-sheet';
+import { useTheme } from '@theme/use-theme';
+import { fonts } from '@theme/fonts';
 import type { BudgetPeriod } from '@core/models';
 
 export function BudgetScreen() {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const topPadding = useScreenTopPadding();
+  const theme = useTheme();
   const { budgetsQuery, createMutation } = useBudgets();
-  const [showForm, setShowForm] = useState(false);
+  const { openSheet, closeSheet } = useGlobalSheet();
   const db = useDatabase();
   const categoryRepo = useMemo(() => new CategoryRepository(db), [db]);
 
@@ -47,68 +45,87 @@ export function BudgetScreen() {
 
   const handleCreate = async (categoryId: string, amount: number, period: BudgetPeriod) => {
     await createMutation.mutateAsync({ categoryId, amount, period });
-    setShowForm(false);
+    closeSheet();
+  };
+
+  const handleOpenForm = () => {
+    openSheet({
+      title: 'Create Budget',
+      content: (
+        <BudgetForm
+          categories={categoriesQuery.data ?? []}
+          onSubmit={handleCreate}
+          loading={createMutation.isPending}
+        />
+      ),
+      snapPoints: ['75%'],
+    });
   };
 
   if (budgetsQuery.isLoading) return <LoadingState />;
   if (budgetsQuery.isError) return <ErrorState onRetry={() => budgetsQuery.refetch()} />;
 
-  const hasAnyBudgets = sorted.length > 0;
-
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: isDark ? accent.screenBg : accent.screenBgLight }}>
+    <View style={{ flex: 1 }}>
       {/* Header */}
-      <View className="px-4 py-4 flex-row items-center justify-between">
-        <Text className="text-3xl font-bold text-gray-900 dark:text-gray-200">Budgets</Text>
-        <Pressable className="p-2 rounded-full active:bg-gray-100 dark:active:bg-gray-800">
-          <X size={24} color="#6B7280" />
-        </Pressable>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: topPadding, paddingBottom: 16 }}>
+        <Text style={{ fontSize: 28, fontFamily: fonts.black, color: theme.textPrimary }}>
+          Budgets
+        </Text>
       </View>
 
-      {hasAnyBudgets ? (
+      {sorted.length > 0 ? (
         <>
           {/* Overview Card */}
-          <View className="mx-4 mb-6 bg-blue-500 rounded-3xl p-6 shadow-lg">
-            <View className="flex-row items-start justify-between">
-              <View className="flex-1">
-                <Text className="text-white text-sm font-medium opacity-90 mb-1">This Month</Text>
-                <View className="flex-row items-baseline gap-2 mb-4">
+          <View style={{ marginHorizontal: 20, marginBottom: 20, borderRadius: 24, padding: 22, backgroundColor: theme.buttonBg }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 13, fontFamily: fonts.medium, color: theme.textOnAccent, opacity: 0.8, marginBottom: 4 }}>This Month</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, marginBottom: 12 }}>
                   <CurrencyText
                     amount={budgetStats.totalSpent}
-                    className="text-3xl font-bold text-white"
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.5}
+                    style={{ fontSize: 28, fontFamily: fonts.black, color: theme.textOnAccent }}
                   />
-                  <Text className="text-white/70 text-sm font-medium">
-                    of <CurrencyText
-                      amount={budgetStats.totalBudgeted}
-                      className="text-sm font-semibold text-white"
-                    />
+                  <Text style={{ fontSize: 13, fontFamily: fonts.medium, color: theme.textOnAccent, opacity: 0.6 }}>
+                    of
                   </Text>
+                  <CurrencyText
+                    amount={budgetStats.totalBudgeted}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.5}
+                    style={{ fontSize: 14, fontFamily: fonts.semibold, color: theme.textOnAccent }}
+                  />
                 </View>
               </View>
-              <View className="w-16 h-16 bg-white/20 rounded-2xl items-center justify-center">
-                <PieChart size={32} color="white" />
+              <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' }}>
+                <PieChart size={24} color={theme.textOnAccent} />
               </View>
             </View>
-            <View className="bg-white/20 h-2 rounded-full overflow-hidden mt-2">
-              <View
-                className="h-full bg-white rounded-full"
-                style={{
-                  width: `${budgetStats.totalBudgeted > 0 ? Math.min(100, (budgetStats.totalSpent / budgetStats.totalBudgeted) * 100) : 0}%`,
-                }}
-              />
+            {/* Progress bar */}
+            <View style={{ height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.2)', overflow: 'hidden' }}>
+              <View style={{
+                height: 6,
+                borderRadius: 3,
+                backgroundColor: theme.textOnAccent,
+                width: `${budgetStats.totalBudgeted > 0 ? Math.min(100, (budgetStats.totalSpent / budgetStats.totalBudgeted) * 100) : 0}%`,
+              }} />
             </View>
           </View>
 
-          {/* Budgets List */}
+          {/* List */}
           <FlatList
             data={sorted}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <View className="px-4">
+              <View style={{ paddingHorizontal: 20 }}>
                 <BudgetCard budget={item} onPress={() => {}} />
               </View>
             )}
-            contentContainerStyle={{ paddingBottom: 120 }}
+            contentContainerStyle={{ paddingBottom: 100 }}
             showsVerticalScrollIndicator={false}
           />
         </>
@@ -116,21 +133,20 @@ export function BudgetScreen() {
         <EmptyState
           icon="target"
           title="No budgets yet"
-          description="Set spending limits for your categories to stay on track and control expenses."
+          description="Set spending limits for your categories to stay on track."
           actionLabel="Create Budget"
-          onAction={() => setShowForm(true)}
+          onAction={handleOpenForm}
         />
       )}
 
-      <FAB onPress={() => setShowForm(true)} />
-
-      <Modal visible={showForm} onClose={() => setShowForm(false)} title="Create Budget">
-        <BudgetForm
-          categories={categoriesQuery.data ?? []}
-          onSubmit={handleCreate}
-          loading={createMutation.isPending}
-        />
-      </Modal>
-    </SafeAreaView>
+      {/* Floating + button */}
+      <View style={{ position: 'absolute', bottom: 100, right: 20 }}>
+        <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: theme.accent200, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 10, elevation: 8 }}>
+          <Pressable onPress={handleOpenForm} style={({ pressed }) => ({ width: 56, height: 56, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.8 : 1 })}>
+            <Plus size={24} color={theme.textOnAccent} strokeWidth={2.5} />
+          </Pressable>
+        </View>
+      </View>
+    </View>
   );
 }
