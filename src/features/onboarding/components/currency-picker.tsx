@@ -91,14 +91,13 @@ export function CurrencyPicker({ selected, onSelect }: CurrencyPickerProps) {
           value={search}
           onChangeText={setSearch}
           leftIcon={<Search size={18} color={theme.textMuted} />}
-          containerClassName="mb-0"
         />
       </View>
 
       <View>
         {filtered.map((item) => (
           <React.Fragment key={item.code}>
-            {renderItem({ item } as any)}
+            {renderItem({ item })}
           </React.Fragment>
         ))}
       </View>

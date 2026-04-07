@@ -39,20 +39,18 @@ export function OverviewCard({
   const dividerColor = isDark ? hslToRgba(hue, saturation * 0.08, 25, 1) : hslToRgba(hue, saturation * 0.25, 82, 1);
 
   return (
-    <View
-      style={{
-        flex: 1,
+    <View style={{ flex: 1 }}>
+    <Pressable onPress={onPress} style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
+      <View style={{
         backgroundColor: cardBg,
         borderRadius: 20,
         borderWidth: 1,
         borderColor,
         overflow: 'hidden',
         minHeight: 170,
-      }}
-    >
+      }}>
       {/* Header row with divider below */}
-      <Pressable
-        onPress={onPress}
+      <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
@@ -70,7 +68,7 @@ export function OverviewCard({
           </Text>
         </View>
         <ChevronRight size={16} color={theme.textMuted} />
-      </Pressable>
+      </View>
 
       {/* Content */}
       <View style={{ flex: 1, paddingHorizontal: 14, paddingVertical: 12, justifyContent: 'space-between' }}>
@@ -112,8 +110,6 @@ export function OverviewCard({
         {progress !== undefined && (
           <View style={{ marginTop: 'auto' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              {/* Small emoji/icon for progress */}
-              <Text style={{ fontSize: 14 }}>😤</Text>
               <View
                 style={{
                   flex: 1,
@@ -139,6 +135,8 @@ export function OverviewCard({
           </View>
         )}
       </View>
+      </View>
+    </Pressable>
     </View>
   );
 }

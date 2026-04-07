@@ -2,6 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRootNavigationState, useSegments } from 'expo-router';
 import { useThemeStore } from '@stores/theme-store';
 import { useIsDark } from '@theme/use-theme';
 import { hslToRgba } from '@theme/hsl';
@@ -9,15 +10,19 @@ import { hslToRgba } from '@theme/hsl';
 /**
  * Global gradient overlays for status bar (top) and tab bar (bottom).
  * Place ONCE at the top level -- every screen gets them automatically.
- * Both are absolute positioned and pass through touches.
+ * Bottom gradient only shows on tab screens (where the tab bar is).
  */
 export function EdgeFade() {
   const isDark = useIsDark();
   const { hue, saturation } = useThemeStore();
   const insets = useSafeAreaInsets();
+  const segments = useSegments();
 
   const topHeight = insets.top + 20;
   const bottomHeight = 40;
+
+  // Only show bottom gradient on tab screens
+  const showBottom = segments[0] === '(tabs)';
 
   // Build gradient colors from the screen bg
   const solid = isDark
@@ -46,19 +51,21 @@ export function EdgeFade() {
         pointerEvents="none"
       />
 
-      {/* Bottom gradient -- inverted, tab bar fade */}
-      <LinearGradient
-        colors={[end, mid, solid]}
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: bottomHeight,
-          zIndex: 10,
-        }}
-        pointerEvents="none"
-      />
+      {/* Bottom gradient -- only on tab screens where the tab bar lives */}
+      {showBottom && (
+        <LinearGradient
+          colors={[end, mid, solid]}
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: bottomHeight,
+            zIndex: 10,
+          }}
+          pointerEvents="none"
+        />
+      )}
     </>
   );
 }

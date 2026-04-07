@@ -71,3 +71,28 @@ export function getRelativeTime(isoString: string): string {
   if (diffDays < 7) return `${diffDays}d ago`;
   return formatDate(isoString);
 }
+
+/**
+ * Format a date as "07 Apr 2026, 2:30 PM"
+ */
+export function formatDateTime(isoString: string): string {
+  const d = new Date(isoString);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = d.toLocaleDateString('en', { month: 'short' });
+  const year = d.getFullYear();
+  const h = d.getHours() % 12 || 12;
+  const m = String(d.getMinutes()).padStart(2, '0');
+  const ampm = d.getHours() >= 12 ? 'PM' : 'AM';
+  return `${day} ${month} ${year}, ${h}:${m} ${ampm}`;
+}
+
+/**
+ * Format a date as "2:30 PM"
+ */
+export function formatTime(isoString: string): string {
+  const d = new Date(isoString);
+  const h = d.getHours() % 12 || 12;
+  const m = String(d.getMinutes()).padStart(2, '0');
+  const ampm = d.getHours() >= 12 ? 'PM' : 'AM';
+  return `${h}:${m} ${ampm}`;
+}

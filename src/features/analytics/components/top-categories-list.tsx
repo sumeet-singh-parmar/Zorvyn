@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
+import { TrendingUp, TrendingDown } from 'lucide-react-native';
 import { CategoryIcon } from '@components/shared/category-icon';
 import { CurrencyText } from '@components/shared/currency-text';
 import { ProgressBar } from '@components/ui/progress-bar';
@@ -11,9 +12,10 @@ import type { CategorySpending } from '../types';
 
 interface TopCategoriesListProps {
   data: CategorySpending[];
+  trends?: Map<string, number>;
 }
 
-export function TopCategoriesList({ data }: TopCategoriesListProps) {
+export function TopCategoriesList({ data, trends }: TopCategoriesListProps) {
   const theme = useTheme();
   const { hue, saturation } = useThemeStore();
 
@@ -81,15 +83,30 @@ export function TopCategoriesList({ data }: TopCategoriesListProps) {
                 </Text>
               </View>
 
-              {/* Amount */}
+              {/* Amount + Trend */}
               <View style={{ alignItems: 'flex-end' }}>
                 <CurrencyText
                   amount={item.amount}
                   style={{ fontSize: isTop ? 16 : 14, fontFamily: fonts.heading, color: theme.textPrimary }}
                 />
-                <Text style={{ fontSize: 12, fontFamily: fonts.body, color: theme.textMuted, marginTop: 2 }}>
-                  {item.percentage}%
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                  <Text style={{ fontSize: 12, fontFamily: fonts.body, color: theme.textMuted }}>
+                    {item.percentage}%
+                  </Text>
+                  {trends?.has(item.categoryId) && (() => {
+                    const change = trends.get(item.categoryId)!;
+                    if (change === 0) return null;
+                    const isUp = change > 0;
+                    return (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                        {isUp ? <TrendingUp size={10} color={theme.expense} /> : <TrendingDown size={10} color={theme.income} />}
+                        <Text style={{ fontSize: 10, fontFamily: fonts.semibold, color: isUp ? theme.expense : theme.income }}>
+                          {isUp ? '+' : ''}{change}%
+                        </Text>
+                      </View>
+                    );
+                  })()}
+                </View>
               </View>
             </View>
 

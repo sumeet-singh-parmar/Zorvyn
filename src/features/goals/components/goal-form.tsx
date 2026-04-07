@@ -5,22 +5,24 @@ import { AmountInput } from '@components/shared/amount-input';
 import { Button } from '@components/ui/button';
 import { IconPicker } from '@components/shared/icon-picker';
 import { ColorPicker } from '@components/shared/color-picker';
-import { Calendar } from 'lucide-react-native';
+import { DateTimeInput } from '@components/shared/date-time-input';
 import { useTheme } from '@theme/use-theme';
 import { fonts } from '@theme/fonts';
+import type { Goal } from '@core/models';
 
 interface GoalFormProps {
   onSubmit: (data: { name: string; targetAmount: number; deadline?: string; icon?: string; color?: string }) => void;
   loading?: boolean;
+  editGoal?: Goal;
 }
 
-export function GoalForm({ onSubmit, loading }: GoalFormProps) {
+export function GoalForm({ onSubmit, loading, editGoal }: GoalFormProps) {
   const theme = useTheme();
-  const [name, setName] = useState('');
-  const [amount, setAmount] = useState('');
-  const [deadline, setDeadline] = useState('');
-  const [icon, setIcon] = useState('target');
-  const [color, setColor] = useState(theme.buttonBg);
+  const [name, setName] = useState(editGoal?.name ?? '');
+  const [amount, setAmount] = useState(editGoal ? String(editGoal.target_amount) : '');
+  const [deadline, setDeadline] = useState<Date | null>(editGoal?.deadline ? new Date(editGoal.deadline) : null);
+  const [icon, setIcon] = useState(editGoal?.icon ?? 'target');
+  const [color, setColor] = useState(editGoal?.color ?? theme.buttonBg);
   const [error, setError] = useState('');
 
   const handleSubmit = () => {
@@ -31,7 +33,7 @@ export function GoalForm({ onSubmit, loading }: GoalFormProps) {
     onSubmit({
       name: name.trim(),
       targetAmount: parsedAmount,
-      deadline: deadline || undefined,
+      deadline: deadline?.toISOString(),
       icon,
       color,
     });
@@ -73,17 +75,12 @@ export function GoalForm({ onSubmit, loading }: GoalFormProps) {
 
         {/* Deadline */}
         <View className="mb-6">
-          <Text
-            className="text-sm mb-2"
-            style={{ color: theme.textPrimary, fontFamily: fonts.heading }}
-          >
-            Deadline (optional)
-          </Text>
-          <Input
-            placeholder="YYYY-MM-DD"
-            value={deadline}
-            onChangeText={setDeadline}
-            leftIcon={<Calendar size={18} color={theme.textMuted} />}
+          <DateTimeInput
+            value={deadline ?? new Date(new Date().getFullYear(), new Date().getMonth() + 3, new Date().getDate())}
+            onChange={(d) => setDeadline(d)}
+            mode="date"
+            label="Deadline (optional)"
+            minimumDate={new Date()}
           />
         </View>
 
@@ -136,11 +133,10 @@ export function GoalForm({ onSubmit, loading }: GoalFormProps) {
 
         {/* Submit Button */}
         <Button
-          title="Create Goal"
+          title={editGoal ? 'Update Goal' : 'Create Goal'}
           onPress={handleSubmit}
           loading={loading}
           size="lg"
-          className="mb-6"
         />
       </View>
     </ScrollView>

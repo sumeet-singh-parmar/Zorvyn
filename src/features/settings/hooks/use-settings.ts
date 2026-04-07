@@ -5,8 +5,12 @@ import { TransactionRepository } from '@core/repositories/transaction-repository
 import { queryKeys } from '@core/constants/query-keys';
 import { exportToCSV, exportToJSON } from '@core/export/export-service';
 import { shareFile } from '@core/export/share-utils';
-import { seedDatabase } from '@core/database/seed';
+import { seedDemoData as runSeed, clearAllData as runClear } from '../services/seed-service';
 
+/**
+ * Settings screen actions: export data, seed demo data, clear all data.
+ * Wraps the seed-service so the screen never touches the database directly.
+ */
 export function useSettings() {
   const db = useDatabase();
   const transactionRepo = useMemo(() => new TransactionRepository(db), [db]);
@@ -24,18 +28,12 @@ export function useSettings() {
       setIsExporting(true);
       setExportError(null);
       const transactions = transactionsQuery.data ?? [];
-
-      let filePath: string;
-      if (format === 'csv') {
-        filePath = await exportToCSV(transactions);
-      } else {
-        filePath = await exportToJSON(transactions);
-      }
-
+      const filePath = format === 'csv'
+        ? await exportToCSV(transactions)
+        : await exportToJSON(transactions);
       await shareFile(filePath);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Export failed';
-      setExportError(message);
+      setExportError(error instanceof Error ? error.message : 'Export failed');
     } finally {
       setIsExporting(false);
     }
@@ -45,21 +43,10 @@ export function useSettings() {
     try {
       setIsExporting(true);
       setExportError(null);
-
-      // Reset seed check by clearing existing categories so seed runs again
-      await db.runAsync("DELETE FROM transactions WHERE deleted_at IS NULL");
-      await db.runAsync("DELETE FROM categories WHERE deleted_at IS NULL");
-      await db.runAsync("DELETE FROM goals WHERE deleted_at IS NULL");
-      await db.runAsync("DELETE FROM budgets WHERE deleted_at IS NULL");
-
-      // Re-run seed to populate fresh demo data
-      await seedDatabase(db);
-
-      // Invalidate all queries so UI refreshes
+      await runSeed(db);
       await queryClient.invalidateQueries();
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Seeding failed';
-      setExportError(message);
+      setExportError(error instanceof Error ? error.message : 'Seeding failed');
     } finally {
       setIsExporting(false);
     }
@@ -69,22 +56,10 @@ export function useSettings() {
     try {
       setIsExporting(true);
       setExportError(null);
-
-      // Clear all user data from every table
-      await db.runAsync("DELETE FROM goal_contributions");
-      await db.runAsync("DELETE FROM goals");
-      await db.runAsync("DELETE FROM budgets");
-      await db.runAsync("DELETE FROM transactions");
-      await db.runAsync("DELETE FROM accounts");
-      await db.runAsync("DELETE FROM categories");
-      await db.runAsync("DELETE FROM tags");
-      await db.runAsync("DELETE FROM user_preferences");
-
-      // Invalidate all queries so UI reflects empty state
+      await runClear(db);
       await queryClient.invalidateQueries();
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Clear failed';
-      setExportError(message);
+      setExportError(error instanceof Error ? error.message : 'Clear failed');
     } finally {
       setIsExporting(false);
     }

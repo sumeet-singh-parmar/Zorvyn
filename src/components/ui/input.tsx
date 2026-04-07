@@ -1,14 +1,24 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, type TextInputProps } from 'react-native';
-import { useTheme, useIsDark } from '@theme/use-theme';
+import {
+  View,
+  Text,
+  TextInput,
+  type TextInputProps,
+} from 'react-native';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import { useIsInBottomSheet } from '@components/shared/global-sheet';
+import { useTheme } from '@theme/use-theme';
 import { fonts } from '@theme/fonts';
+
+// The Input component switches between RN's TextInput and gorhom's BottomSheetTextInput,
+// which have incompatible focus event signatures. Using a relaxed type here is intentional.
+type FocusEvt = Parameters<NonNullable<TextInputProps['onFocus']>>[0];
 
 interface InputProps extends Omit<TextInputProps, 'className'> {
   label?: string;
   error?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
-  containerClassName?: string;
 }
 
 export function Input({
@@ -16,20 +26,20 @@ export function Input({
   error,
   leftIcon,
   rightIcon,
-  containerClassName = '',
   multiline,
   ...props
 }: InputProps) {
+  const isSheet = useIsInBottomSheet();
+  const InputComponent = isSheet ? BottomSheetTextInput : TextInput;
   const theme = useTheme();
-  const isDark = useIsDark();
   const [focused, setFocused] = useState(false);
 
-  const handleFocus = (e: any) => {
+  const handleFocus = (e: FocusEvt) => {
     setFocused(true);
     props.onFocus?.(e);
   };
 
-  const handleBlur = (e: any) => {
+  const handleBlur = (e: FocusEvt) => {
     setFocused(false);
     props.onBlur?.(e);
   };
@@ -41,7 +51,7 @@ export function Input({
       : theme.border;
 
   return (
-    <View style={containerClassName === 'rounded-xl' ? { borderRadius: 12 } : undefined}>
+    <View>
       {label && (
         <Text
           style={{
@@ -71,7 +81,7 @@ export function Input({
             {leftIcon}
           </View>
         )}
-        <TextInput
+        <InputComponent
           style={{
             flex: 1,
             fontSize: 16,

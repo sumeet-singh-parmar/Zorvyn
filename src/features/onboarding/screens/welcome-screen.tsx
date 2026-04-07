@@ -31,12 +31,13 @@ export function WelcomeScreen() {
           </View>
 
           {/* CTA Button */}
-          <Button
-            title="Get Started"
-            onPress={() => router.push('/(onboarding)/setup-currency')}
-            size="lg"
-            className="w-full"
-          />
+          <View style={{ width: '100%' }}>
+            <Button
+              title="Get Started"
+              onPress={() => router.push('/(onboarding)/setup-currency')}
+              size="lg"
+            />
+          </View>
         </Animated.View>
       </View>
     </View>

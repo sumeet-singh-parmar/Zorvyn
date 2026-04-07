@@ -4,9 +4,7 @@ export interface TransactionWithCategory extends Transaction {
   category?: Category;
 }
 
-export type DateSection = 'Today' | 'Yesterday' | 'This Week' | 'Earlier';
-
 export interface TransactionSection {
-  title: DateSection;
+  title: string;
   data: TransactionWithCategory[];
 }

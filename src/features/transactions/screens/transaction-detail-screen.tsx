@@ -14,9 +14,11 @@ import { Button } from '@components/ui/button';
 import { LoadingState } from '@components/feedback/loading-state';
 import { ErrorState } from '@components/feedback/error-state';
 import { showConfirmDialog } from '@components/shared/confirm-dialog';
-import { ArrowLeft, Calendar, Wallet, Tag, FileText, Coins, Trash2, ChevronRight } from 'lucide-react-native';
-import { formatDate } from '@core/utils/date';
+import { ArrowLeft, Calendar, Wallet, Tag, FileText, Coins, Trash2, ChevronRight, Pencil } from 'lucide-react-native';
 import { useScreenTopPadding } from '@components/shared/edge-fade';
+import { useGlobalSheet } from '@components/shared/global-sheet';
+import { formatDateTime } from '@core/utils/date';
+import { TransactionForm } from '../components/transaction-form';
 import { useTheme } from '@theme/use-theme';
 import { fonts } from '@theme/fonts';
 
@@ -28,6 +30,7 @@ export function TransactionDetailScreen() {
   const db = useDatabase();
   const queryClient = useQueryClient();
 
+  const { openSheet, closeSheet } = useGlobalSheet();
   const transactionRepo = useMemo(() => new TransactionRepository(db), [db]);
   const categoryRepo = useMemo(() => new CategoryRepository(db), [db]);
   const accountRepo = useMemo(() => new AccountRepository(db), [db]);
@@ -86,6 +89,22 @@ export function TransactionDetailScreen() {
   };
   const accentColor = typeColor[tx.type] ?? theme.accent500;
 
+  const handleEdit = () => {
+    openSheet({
+      title: 'Edit Transaction',
+      content: (
+        <TransactionForm
+          editTransaction={tx}
+          onSuccess={() => {
+            closeSheet();
+            txQuery.refetch();
+          }}
+        />
+      ),
+      snapPoints: ['90%'],
+    });
+  };
+
   const handleDelete = () => {
     showConfirmDialog({
       title: 'Delete Transaction',
@@ -99,7 +118,7 @@ export function TransactionDetailScreen() {
   const details = [
     { icon: Tag, label: 'Category', value: category?.name ?? 'Uncategorized' },
     { icon: Wallet, label: 'Account', value: account?.name ?? 'Unknown' },
-    { icon: Calendar, label: 'Date', value: formatDate(tx.date) },
+    { icon: Calendar, label: 'Date & Time', value: formatDateTime(tx.date) },
     { icon: Coins, label: 'Currency', value: tx.currency_code },
     ...(tx.notes ? [{ icon: FileText, label: 'Notes', value: tx.notes }] : []),
   ];
@@ -188,8 +207,32 @@ export function TransactionDetailScreen() {
           })}
         </View>
 
-        {/* Delete */}
+        {/* Edit */}
         <View style={{ marginHorizontal: 20, marginTop: 24 }}>
+          <Pressable onPress={handleEdit} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: theme.tint,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: theme.ring,
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+            }}>
+              <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: theme.buttonBg + '20', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                <Pencil size={18} color={theme.buttonBg} />
+              </View>
+              <Text style={{ flex: 1, fontSize: 15, fontFamily: fonts.semibold, color: theme.buttonBg }}>
+                Edit Transaction
+              </Text>
+              <ChevronRight size={18} color={theme.buttonBg} />
+            </View>
+          </Pressable>
+        </View>
+
+        {/* Delete */}
+        <View style={{ marginHorizontal: 20, marginTop: 12 }}>
           <Pressable onPress={handleDelete} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
             <View style={{
               flexDirection: 'row',

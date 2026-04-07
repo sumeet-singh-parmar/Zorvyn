@@ -46,7 +46,6 @@ export function AccountSetupForm({ onSubmit, loading }: AccountSetupFormProps) {
         value={name}
         onChangeText={(t) => { setName(t); setError(''); }}
         error={error}
-        containerClassName="mb-6"
       />
 
       {/* Account Type Selector */}

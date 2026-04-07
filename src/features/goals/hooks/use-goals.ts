@@ -44,20 +44,51 @@ export function useGoals() {
 
   const addContributionMutation = useMutation({
     mutationFn: async (data: { goalId: string; amount: number; accountId?: string; notes?: string }) => {
+      const goal = await goalRepo.getById(data.goalId);
+      if (!goal) throw new Error('Goal not found');
+
+      // Cap contribution at remaining amount
+      const remaining = goal.target_amount - goal.current_amount;
+      if (remaining <= 0) throw new Error('Goal already completed');
+      const cappedAmount = Math.min(data.amount, remaining);
+
       await contributionRepo.create({
         goal_id: data.goalId,
-        amount: data.amount,
+        amount: cappedAmount,
         account_id: data.accountId ?? null,
         notes: data.notes ?? null,
       });
       // Update goal's current_amount
       const total = await contributionRepo.getTotalByGoal(data.goalId);
-      const goal = await goalRepo.getById(data.goalId);
       if (goal) {
-        await goalRepo.update(data.goalId, { current_amount: total } as any);
+        await goalRepo.update(data.goalId, { current_amount: total });
         if (total >= goal.target_amount) {
           await goalRepo.markCompleted(data.goalId);
         }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.goals.active });
+      queryClient.invalidateQueries({ queryKey: queryKeys.goals.completed });
+    },
+  });
+
+  const updateGoalMutation = useMutation({
+    mutationFn: async (data: { id: string; name: string; targetAmount: number; deadline?: string; icon?: string; color?: string }) => {
+      const goal = await goalRepo.getById(data.id);
+      await goalRepo.update(data.id, {
+        name: data.name,
+        target_amount: data.targetAmount,
+        deadline: data.deadline ?? null,
+        icon: data.icon ?? null,
+        color: data.color ?? null,
+      });
+      // If target was increased above current amount, un-complete the goal
+      if (goal && goal.is_completed && data.targetAmount > goal.current_amount) {
+        await db.runAsync(
+          `UPDATE goals SET is_completed = 0, completed_at = NULL, updated_at = datetime('now') WHERE id = ?`,
+          [data.id]
+        );
       }
     },
     onSuccess: () => {
@@ -78,6 +109,7 @@ export function useGoals() {
     activeGoalsQuery,
     completedGoalsQuery,
     createGoalMutation,
+    updateGoalMutation,
     addContributionMutation,
     deleteGoalMutation,
   };

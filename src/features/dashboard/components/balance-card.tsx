@@ -80,7 +80,8 @@ function Blob({ size, startX, startY, color, delay }: {
         true,
       ),
     );
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [delay]);
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [

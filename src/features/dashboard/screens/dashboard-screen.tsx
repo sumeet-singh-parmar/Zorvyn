@@ -10,9 +10,14 @@ import { SavingsProgress } from '../components/savings-progress';
 import { ErrorState } from '@components/feedback/error-state';
 import { LoadingState } from '@components/feedback/loading-state';
 import { useScreenTopPadding } from '@components/shared/edge-fade';
+import { useGlobalSheet } from '@components/shared/global-sheet';
+import { GoalForm } from '@features/goals/components/goal-form';
+import { useGoals } from '@features/goals/hooks/use-goals';
 import { useTheme } from '@theme/use-theme';
 import { OverviewCard } from '@components/ui/overview-card';
 import { fonts } from '@theme/fonts';
+import { formatCompactCurrency } from '@core/currency';
+import { useCurrencyStore } from '@stores/currency-store';
 import {
   MoneyBag02Icon,
   ChartHistogramIcon,
@@ -24,6 +29,7 @@ export function DashboardScreen() {
   const router = useRouter();
   const theme = useTheme();
   const topPadding = useScreenTopPadding();
+  const currencyCode = useCurrencyStore((s) => s.currencyCode);
   const {
     totalBalance,
     totalIncome,
@@ -35,11 +41,34 @@ export function DashboardScreen() {
     recentTransactions,
     categories,
     goals,
+    budgetCount,
+    budgetProgress,
+    recurringCount,
+    loanCount,
+    accountCount,
     isLoading,
     isError,
     refetchAll,
   } = useDashboardData();
   const [refreshing, setRefreshing] = useState(false);
+  const { openSheet, closeSheet } = useGlobalSheet();
+  const { createGoalMutation } = useGoals();
+
+  const handleAddGoal = () => {
+    openSheet({
+      title: 'Create Goal',
+      content: (
+        <GoalForm
+          onSubmit={async (data) => {
+            await createGoalMutation.mutateAsync(data);
+            closeSheet();
+          }}
+          loading={createGoalMutation.isPending}
+        />
+      ),
+      snapPoints: ['80%'],
+    });
+  };
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -103,7 +132,12 @@ export function DashboardScreen() {
 
         {/* Savings Goals */}
         <View style={{ paddingHorizontal: 16, marginBottom: 24 }}>
-          <SavingsProgress goals={goals} onPress={(id) => router.push(`/goal/${id}`)} />
+          <SavingsProgress
+            goals={goals}
+            onPress={() => router.push('/goal')}
+            onAddGoal={handleAddGoal}
+            onSeeAll={() => router.push('/goal')}
+          />
         </View>
 
         {/* Overview */}
@@ -115,36 +149,39 @@ export function DashboardScreen() {
             <OverviewCard
               icon={MoneyBag02Icon}
               title="Budgets"
-              stat="10"
+              stat={String(budgetCount)}
               statLabel="Budgets"
-              progress={0.13}
+              progress={budgetProgress}
               onPress={() => router.push('/budget')}
             />
             <OverviewCard
               icon={ChartHistogramIcon}
-              title="Assets"
-              stat="7"
-              statLabel="Assets"
-              secondaryStat="$688K"
+              title="Accounts"
+              stat={String(accountCount)}
+              statLabel="Accounts"
+              secondaryStat={formatCompactCurrency(totalBalance, currencyCode)}
               secondaryLabel="Total"
+              onPress={() => router.push('/accounts')}
             />
           </View>
           <View style={{ flexDirection: 'row', gap: 12 }}>
             <OverviewCard
               icon={Invoice02Icon}
-              title="Bill Splitter"
-              stat="6"
-              statLabel="Bills"
-              secondaryStat="6"
-              secondaryLabel="Active"
+              title="Recurring"
+              stat={String(recurringCount.active)}
+              statLabel="Active"
+              secondaryStat={String(recurringCount.paused)}
+              secondaryLabel="Paused"
+              onPress={() => router.push('/recurring')}
             />
             <OverviewCard
               icon={CreditCardIcon}
               title="Loans"
-              stat="4"
+              stat={String(loanCount.lending)}
               statLabel="Lending"
-              secondaryStat="6"
+              secondaryStat={String(loanCount.borrowing)}
               secondaryLabel="Borrowing"
+              onPress={() => router.push('/loans')}
             />
           </View>
         </View>

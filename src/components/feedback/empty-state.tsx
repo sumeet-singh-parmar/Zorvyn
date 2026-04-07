@@ -23,24 +23,23 @@ export function EmptyState({
   const theme = useTheme();
 
   return (
-    <View className="flex-1 items-center justify-center px-8 py-16">
-      <View
-        className="w-20 h-20 rounded-full items-center justify-center mb-6"
-        style={{ backgroundColor: theme.surfaceBg }}
-      >
-        <Icon name={icon} size={36} color={theme.textMuted} />
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingVertical: 64 }}>
+      <View style={{
+        width: 88,
+        height: 88,
+        borderRadius: 28,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: theme.tint,
+        marginBottom: 24,
+      }}>
+        <Icon name={icon} size={38} color={theme.buttonBg} strokeWidth={1.8} />
       </View>
-      <Text
-        className="text-center mb-3"
-        style={{ fontSize: 20, color: theme.textPrimary, fontFamily: fonts.heading }}
-      >
+      <Text style={{ fontSize: 20, fontFamily: fonts.heading, color: theme.textPrimary, textAlign: 'center', marginBottom: 8 }}>
         {title}
       </Text>
       {description && (
-        <Text
-          className="text-center mb-8"
-          style={{ fontSize: 14, lineHeight: 20, color: theme.textSecondary }}
-        >
+        <Text style={{ fontSize: 14, fontFamily: fonts.body, lineHeight: 20, color: theme.textSecondary, textAlign: 'center', marginBottom: 28 }}>
           {description}
         </Text>
       )}

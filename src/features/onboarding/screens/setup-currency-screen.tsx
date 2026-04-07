@@ -30,7 +30,7 @@ export function SetupCurrencyScreen() {
         {/* Back Button */}
         <Pressable
           onPress={() => router.back()}
-          className="w-10 h-10 rounded-full items-center justify-center mb-4"
+          className="w-10 h-10 rounded-full items-center justify-center mb-7"
           style={{ backgroundColor: theme.surfaceBg }}
         >
           <ChevronLeft size={24} color={theme.textPrimary} />

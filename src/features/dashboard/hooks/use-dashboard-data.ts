@@ -5,6 +5,9 @@ import { TransactionRepository } from '@core/repositories/transaction-repository
 import { AccountRepository } from '@core/repositories/account-repository';
 import { CategoryRepository } from '@core/repositories/category-repository';
 import { GoalRepository } from '@core/repositories/goal-repository';
+import { RecurringRepository } from '@core/repositories/recurring-repository';
+import { LoanRepository } from '@core/repositories/loan-repository';
+import { BudgetRepository } from '@core/repositories/budget-repository';
 import { queryKeys } from '@core/constants/query-keys';
 import { startOfMonth, endOfMonth } from '@core/utils/date';
 import type { CategoryBreakdownItem } from '../types';
@@ -15,6 +18,9 @@ export function useDashboardData() {
   const transactionRepo = useMemo(() => new TransactionRepository(db), [db]);
   const categoryRepo = useMemo(() => new CategoryRepository(db), [db]);
   const goalRepo = useMemo(() => new GoalRepository(db), [db]);
+  const budgetRepo = useMemo(() => new BudgetRepository(db), [db]);
+  const recurringRepo = useMemo(() => new RecurringRepository(db), [db]);
+  const loanRepo = useMemo(() => new LoanRepository(db), [db]);
 
   const now = new Date();
   const monthStart = startOfMonth(now);
@@ -126,6 +132,35 @@ export function useDashboardData() {
     [transactionsQuery.data]
   );
 
+  // Overview card data
+  const budgetSummaryQuery = useQuery({
+    queryKey: ['budgets', 'dashboard-summary'],
+    refetchOnMount: 'always',
+    queryFn: async () => {
+      const budgets = await budgetRepo.getActive();
+      let totalBudgeted = 0;
+      let totalSpent = 0;
+      for (const b of budgets) {
+        totalBudgeted += b.amount;
+        const spent = await budgetRepo.getSpentAmount(b.category_id, monthStart, monthEnd);
+        totalSpent += spent;
+      }
+      return { count: budgets.length, totalBudgeted, totalSpent };
+    },
+  });
+
+  const recurringCountQuery = useQuery({
+    queryKey: ['recurring', 'count'],
+    refetchOnMount: 'always',
+    queryFn: () => recurringRepo.getCount(),
+  });
+
+  const loanCountQuery = useQuery({
+    queryKey: ['loans', 'count'],
+    refetchOnMount: 'always',
+    queryFn: () => loanRepo.getCount(),
+  });
+
   const isLoading =
     accountsQuery.isLoading ||
     transactionsQuery.isLoading ||
@@ -141,6 +176,10 @@ export function useDashboardData() {
       transactionsQuery.refetch(),
       categoriesQuery.refetch(),
       goalsQuery.refetch(),
+      budgetSummaryQuery.refetch(),
+      recurringCountQuery.refetch(),
+      loanCountQuery.refetch(),
+      lastMonthTransactionsQuery.refetch(),
     ]);
   };
 
@@ -156,6 +195,13 @@ export function useDashboardData() {
     recentTransactions,
     categories: categoriesQuery.data ?? [],
     goals: goalsQuery.data ?? [],
+    budgetCount: budgetSummaryQuery.data?.count ?? 0,
+    budgetProgress: budgetSummaryQuery.data?.totalBudgeted
+      ? Math.min(1, budgetSummaryQuery.data.totalSpent / budgetSummaryQuery.data.totalBudgeted)
+      : 0,
+    recurringCount: recurringCountQuery.data ?? { active: 0, paused: 0 },
+    loanCount: loanCountQuery.data ?? { lending: 0, borrowing: 0 },
+    accountCount: (accountsQuery.data ?? []).length,
     isLoading,
     isError,
     refetchAll,

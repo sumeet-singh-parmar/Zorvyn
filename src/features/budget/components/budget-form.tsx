@@ -7,11 +7,13 @@ import { CategoryPicker } from '@features/transactions/components/category-picke
 import { useTheme } from '@theme/use-theme';
 import { fonts } from '@theme/fonts';
 import type { Category, BudgetPeriod } from '@core/models';
+import type { BudgetWithProgress } from '../types';
 
 interface BudgetFormProps {
   categories: Category[];
   onSubmit: (categoryId: string, amount: number, period: BudgetPeriod) => void;
   loading?: boolean;
+  editBudget?: BudgetWithProgress;
 }
 
 const PERIOD_OPTIONS = ['Weekly', 'Monthly', 'Yearly'];
@@ -21,11 +23,17 @@ const periodMap: Record<string, BudgetPeriod> = {
   Yearly: 'yearly',
 };
 
-export function BudgetForm({ categories, onSubmit, loading }: BudgetFormProps) {
+const reversePeriodMap: Record<BudgetPeriod, string> = {
+  weekly: 'Weekly',
+  monthly: 'Monthly',
+  yearly: 'Yearly',
+};
+
+export function BudgetForm({ categories, onSubmit, loading, editBudget }: BudgetFormProps) {
   const theme = useTheme();
-  const [amount, setAmount] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [period, setPeriod] = useState('Monthly');
+  const [amount, setAmount] = useState(editBudget ? String(editBudget.amount) : '');
+  const [categoryId, setCategoryId] = useState(editBudget?.category_id ?? '');
+  const [period, setPeriod] = useState(editBudget ? reversePeriodMap[editBudget.period] : 'Monthly');
   const [error, setError] = useState('');
 
   const expenseCategories = categories.filter((c) => c.type === 'expense' || c.type === 'both');
@@ -109,11 +117,10 @@ export function BudgetForm({ categories, onSubmit, loading }: BudgetFormProps) {
 
         {/* Submit Button */}
         <Button
-          title="Create Budget"
+          title={editBudget ? 'Update Budget' : 'Create Budget'}
           onPress={handleSubmit}
           loading={loading}
           size="lg"
-          className="mb-6"
         />
       </View>
     </ScrollView>

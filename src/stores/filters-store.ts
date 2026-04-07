@@ -7,12 +7,10 @@ interface FiltersState {
   selectedAccountId: string | null;
   selectedCategoryId: string | null;
   selectedType: 'income' | 'expense' | 'transfer' | null;
-  searchQuery: string;
   setDateRange: (range: { start: string; end: string } | null) => void;
   setSelectedAccountId: (id: string | null) => void;
   setSelectedCategoryId: (id: string | null) => void;
   setSelectedType: (type: 'income' | 'expense' | 'transfer' | null) => void;
-  setSearchQuery: (query: string) => void;
   resetFilters: () => void;
 }
 
@@ -23,19 +21,16 @@ export const useFiltersStore = create<FiltersState>()(
       selectedAccountId: null,
       selectedCategoryId: null,
       selectedType: null,
-      searchQuery: '',
       setDateRange: (range) => set({ dateRange: range }),
       setSelectedAccountId: (id) => set({ selectedAccountId: id }),
       setSelectedCategoryId: (id) => set({ selectedCategoryId: id }),
       setSelectedType: (type) => set({ selectedType: type }),
-      setSearchQuery: (query) => set({ searchQuery: query }),
       resetFilters: () =>
         set({
           dateRange: null,
           selectedAccountId: null,
           selectedCategoryId: null,
           selectedType: null,
-          searchQuery: '',
         }),
     }),
     {

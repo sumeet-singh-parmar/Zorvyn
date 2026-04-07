@@ -62,6 +62,7 @@ export function SettingsScreen() {
   const theme = useTheme();
   const topPadding = useScreenTopPadding();
   const { openSheet } = useGlobalSheet();
+  const activePreset = useThemeStore((s) => s.activePreset);
   const {
     exportData,
     seedDemoData,
@@ -166,7 +167,7 @@ export function SettingsScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 15, fontFamily: fonts.semibold, color: theme.textPrimary }}>Accent Color</Text>
                 <Text style={{ fontSize: 12, fontFamily: fonts.body, color: theme.textMuted, marginTop: 2, textTransform: 'capitalize' }}>
-                  {useThemeStore.getState().activePreset ?? 'Custom'}
+                  {activePreset ?? 'Custom'}
                 </Text>
               </View>
               <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: theme.accent500, marginRight: 8 }} />

@@ -58,16 +58,28 @@ export function useBudgets() {
         is_active: 1,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.budgets.active });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: { id: string; categoryId: string; amount: number; period: BudgetPeriod }) =>
+      budgetRepo.update(data.id, {
+        category_id: data.categoryId,
+        amount: data.amount,
+        period: data.period,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => budgetRepo.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.budgets.active });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
     },
   });
 
-  return { budgetsQuery, createMutation, deleteMutation };
+  return { budgetsQuery, createMutation, updateMutation, deleteMutation };
 }

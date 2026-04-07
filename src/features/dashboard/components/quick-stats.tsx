@@ -16,100 +16,47 @@ export function QuickStats({ income, expense, savingsRate }: QuickStatsProps) {
   const theme = useTheme();
 
   return (
-    <View className="flex-row gap-3">
-      {/* Income Card */}
-      <Animated.View entering={FadeInUp.delay(200).springify()} className="flex-1">
-        <View
-          className="rounded-2xl p-4 overflow-hidden"
-          style={{
-            backgroundColor: theme.incomeTint,
-            borderWidth: 1,
-            borderColor: theme.income + '30',
-          }}
-        >
-          <View className="flex-row items-center mb-2">
-            <View
-              className="rounded-full p-2"
-              style={{ backgroundColor: theme.income + '30' }}
-            >
-              <TrendingUp size={16} color={theme.income} />
+    <View style={{ flexDirection: 'row', gap: 10 }}>
+      {[
+        { label: 'Income', color: theme.income, tint: theme.incomeTint, icon: TrendingUp, value: income, isCurrency: true, delay: 200 },
+        { label: 'Expenses', color: theme.expense, tint: theme.expenseTint, icon: TrendingDown, value: expense, isCurrency: true, delay: 300 },
+        { label: 'Savings', color: savingsRate >= 0 ? theme.income : theme.expense, tint: theme.tint, icon: Target, value: savingsRate, isCurrency: false, delay: 400 },
+      ].map((card) => {
+        const IconComp = card.icon;
+        return (
+          <Animated.View key={card.label} entering={FadeInUp.delay(card.delay).springify()} style={{ flex: 1 }}>
+            <View style={{
+              borderRadius: 16,
+              padding: 14,
+              backgroundColor: card.tint,
+              borderWidth: 1,
+              borderColor: card.color + '30',
+              minHeight: 110,
+            }}>
+              <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: card.color + '25', alignItems: 'center', justifyContent: 'center' }}>
+                <IconComp size={15} color={card.color} />
+              </View>
+              <Text style={{ fontSize: 11, fontFamily: fonts.medium, color: theme.textSecondary, marginTop: 10 }}>
+                {card.label}
+              </Text>
+              {card.isCurrency ? (
+                <CurrencyText
+                  amount={card.value}
+                  compact
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.7}
+                  style={{ fontSize: 17, fontFamily: fonts.heading, color: card.color, marginTop: 2 }}
+                />
+              ) : (
+                <Text style={{ fontSize: 17, fontFamily: fonts.heading, color: card.color, marginTop: 2 }}>
+                  {card.value}%
+                </Text>
+              )}
             </View>
-          </View>
-          <Text style={{ fontSize: 12, fontFamily: fonts.medium, color: theme.textSecondary, marginTop: 8 }}>
-            Income
-          </Text>
-          <CurrencyText
-            amount={income}
-            compact
-            className="text-lg mt-1"
-            style={{ color: theme.income, fontFamily: fonts.heading }}
-          />
-        </View>
-      </Animated.View>
-
-      {/* Expenses Card */}
-      <Animated.View entering={FadeInUp.delay(300).springify()} className="flex-1">
-        <View
-          className="rounded-2xl p-4 overflow-hidden"
-          style={{
-            backgroundColor: theme.expenseTint,
-            borderWidth: 1,
-            borderColor: theme.expense + '30',
-          }}
-        >
-          <View className="flex-row items-center mb-2">
-            <View
-              className="rounded-full p-2"
-              style={{ backgroundColor: theme.expense + '30' }}
-            >
-              <TrendingDown size={16} color={theme.expense} />
-            </View>
-          </View>
-          <Text style={{ fontSize: 12, fontFamily: fonts.medium, color: theme.textSecondary, marginTop: 8 }}>
-            Expenses
-          </Text>
-          <CurrencyText
-            amount={expense}
-            compact
-            className="text-lg mt-1"
-            style={{ color: theme.expense, fontFamily: fonts.heading }}
-          />
-        </View>
-      </Animated.View>
-
-      {/* Savings Rate Card */}
-      <Animated.View entering={FadeInUp.delay(400).springify()} className="flex-1">
-        <View
-          className="rounded-2xl p-4 overflow-hidden"
-          style={{
-            backgroundColor: theme.tint,
-            borderWidth: 1,
-            borderColor: theme.ring,
-          }}
-        >
-          <View className="flex-row items-center mb-2">
-            <View
-              className="rounded-full p-2"
-              style={{ backgroundColor: theme.ring }}
-            >
-              <Target size={16} color={theme.accent500} />
-            </View>
-          </View>
-          <Text style={{ fontSize: 12, fontFamily: fonts.medium, color: theme.textSecondary, marginTop: 8 }}>
-            Savings Rate
-          </Text>
-          <Text
-            style={{
-              fontSize: 18,
-              fontFamily: fonts.heading,
-              marginTop: 4,
-              color: savingsRate >= 0 ? theme.income : theme.expense,
-            }}
-          >
-            {savingsRate}%
-          </Text>
-        </View>
-      </Animated.View>
+          </Animated.View>
+        );
+      })}
     </View>
   );
 }

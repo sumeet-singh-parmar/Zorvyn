@@ -25,11 +25,29 @@ export function useTransactions() {
       selectedType,
     ],
     queryFn: async () => {
-      if (dateRange) return transactionRepo.getByDateRange(dateRange.start, dateRange.end);
-      if (selectedAccountId) return transactionRepo.getByAccount(selectedAccountId);
-      if (selectedCategoryId) return transactionRepo.getByCategory(selectedCategoryId);
-      if (selectedType) return transactionRepo.getByType(selectedType);
-      return transactionRepo.getAll();
+      // Fetch all, filter in JS for combined filters, sort newest first
+      let results = await transactionRepo.getAll();
+      results.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+      if (selectedType) {
+        results = results.filter((t) => t.type === selectedType);
+      }
+      if (dateRange) {
+        const startTime = new Date(dateRange.start).getTime();
+        const endTime = new Date(dateRange.end).getTime();
+        results = results.filter((t) => {
+          const txTime = new Date(t.date).getTime();
+          return txTime >= startTime && txTime <= endTime;
+        });
+      }
+      if (selectedAccountId) {
+        results = results.filter((t) => t.account_id === selectedAccountId);
+      }
+      if (selectedCategoryId) {
+        results = results.filter((t) => t.category_id === selectedCategoryId);
+      }
+
+      return results;
     },
     placeholderData: keepPreviousData,
   });
@@ -60,7 +78,7 @@ export function useTransactions() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.budgets.active });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
     },
   });
 

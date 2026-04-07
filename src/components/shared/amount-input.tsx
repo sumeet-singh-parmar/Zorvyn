@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput } from 'react-native';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import { useIsInBottomSheet } from '@components/shared/global-sheet';
 import { getCurrencyInfo } from '@core/currency';
 import { useCurrencyStore } from '@stores/currency-store';
 import { useTheme } from '@theme/use-theme';
@@ -16,8 +18,10 @@ export function AmountInput({
   value,
   onChangeText,
   currencyCode,
-  autoFocus = true,
+  autoFocus = false,
 }: AmountInputProps) {
+  const isSheet = useIsInBottomSheet();
+  const InputComponent = isSheet ? BottomSheetTextInput : TextInput;
   const theme = useTheme();
   const defaultCurrency = useCurrencyStore((s) => s.currencyCode);
   const code = currencyCode ?? defaultCurrency;
@@ -57,7 +61,7 @@ export function AmountInput({
         >
           {symbol}
         </Text>
-        <TextInput
+        <InputComponent
           style={{
             fontSize,
             fontFamily: fonts.amount,

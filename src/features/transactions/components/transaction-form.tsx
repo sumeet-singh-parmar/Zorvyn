@@ -1,22 +1,28 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text } from 'react-native';
 import { AmountInput } from '@components/shared/amount-input';
 import { SegmentedControl } from '@components/ui/segmented-control';
 import { Input } from '@components/ui/input';
 import { Button } from '@components/ui/button';
-import { AccountPicker } from '@components/shared/account-picker';
+import { AccountSelector } from '@components/shared/account-selector';
+import { DateTimeInput } from '@components/shared/date-time-input';
 import { CategoryPicker } from './category-picker';
-import { CreditCard, ChevronDown, Calendar, Edit3, Check } from 'lucide-react-native';
+import { Edit3 } from 'lucide-react-native';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { FloppyDiskIcon } from '@hugeicons/core-free-icons';
 import { useTransactionForm } from '../hooks/use-transaction-form';
 import { useTheme } from '@theme/use-theme';
 import { fonts } from '@theme/fonts';
-import type { TransactionType } from '@core/models';
+import type { Transaction, TransactionType } from '@core/models';
 
 interface TransactionFormProps {
   onSuccess: () => void;
+  editTransaction?: Transaction;
 }
 
-const TYPE_OPTIONS = ['Income', 'Expense', 'Transfer'];
+// Only show Transfer option if user has 2+ accounts
+const getTypeOptions = (accountCount: number) =>
+  accountCount >= 2 ? ['Income', 'Expense', 'Transfer'] : ['Income', 'Expense'];
 const typeMap: Record<string, TransactionType> = {
   Income: 'income',
   Expense: 'expense',
@@ -28,16 +34,19 @@ const reverseTypeMap: Record<TransactionType, string> = {
   transfer: 'Transfer',
 };
 
-export function TransactionForm({ onSuccess }: TransactionFormProps) {
+export function TransactionForm({ onSuccess, editTransaction }: TransactionFormProps) {
   const theme = useTheme();
-  const form = useTransactionForm();
-  const [accountPickerVisible, setAccountPickerVisible] = useState(false);
+  const form = useTransactionForm({ editTransaction });
   const [error, setError] = useState('');
 
   const handleSave = async () => {
     setError('');
     try {
-      await form.createMutation.mutateAsync();
+      if (form.isEditing) {
+        await form.updateMutation.mutateAsync();
+      } else {
+        await form.createMutation.mutateAsync();
+      }
       form.reset();
       onSuccess();
     } catch (e) {
@@ -45,17 +54,19 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
     }
   };
 
+  const labelStyle = { fontSize: 14, textTransform: 'uppercase' as const, letterSpacing: 0.5, color: theme.textSecondary, fontFamily: fonts.heading };
+
   return (
     <View style={{ flex: 1 }}>
       {/* Hero Amount Input */}
-      <View className="px-6 py-8">
+      <View style={{ paddingHorizontal: 24, paddingVertical: 32 }}>
         <AmountInput value={form.amount} onChangeText={form.setAmount} />
       </View>
 
       {/* Type Segmented Control */}
-      <View className="px-6 mb-8">
+      <View style={{ paddingHorizontal: 24, marginBottom: 32 }}>
         <SegmentedControl
-          options={TYPE_OPTIONS}
+          options={getTypeOptions(form.accounts.length)}
           selected={reverseTypeMap[form.type]}
           onSelect={(val) => form.setType(typeMap[val])}
         />
@@ -63,13 +74,8 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
 
       {/* Category Picker */}
       {form.type !== 'transfer' && (
-        <View className="px-6 mb-8">
-          <Text
-            className="mb-4"
-            style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, color: theme.textSecondary, fontFamily: fonts.heading }}
-          >
-            Category
-          </Text>
+        <View style={{ paddingHorizontal: 24, marginBottom: 32 }}>
+          <Text style={{ ...labelStyle, marginBottom: 16 }}>Category</Text>
           <CategoryPicker
             categories={form.filteredCategories}
             selected={form.categoryId}
@@ -79,65 +85,52 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
       )}
 
       {/* Account Picker */}
-      <View className="px-6 mb-6">
-        <Text
-          className="mb-3"
-          style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, color: theme.textSecondary, fontFamily: fonts.heading }}
-        >
-          Account
-        </Text>
-        <Pressable onPress={() => setAccountPickerVisible(true)} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: theme.surfaceBg, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14 }}>
-            <CreditCard size={20} color={theme.textMuted} />
-            <Text style={{ flex: 1, marginLeft: 12, fontSize: 16, color: theme.textPrimary, fontFamily: fonts.medium }}>
-              {form.accounts.find((a) => a.id === form.accountId)?.name ?? 'Select account'}
-            </Text>
-            <ChevronDown size={20} color={theme.textMuted} />
-          </View>
-        </Pressable>
+      <View style={{ paddingHorizontal: 24, marginBottom: 24 }}>
+        <AccountSelector
+          accounts={form.accounts}
+          selected={form.accountId}
+          onSelect={form.setAccountId}
+          label={form.type === 'transfer' ? 'From Account' : 'Account'}
+        />
       </View>
 
-      {/* Date Input */}
-      <View className="px-6 mb-6">
-        <Text
-          className="mb-3"
-          style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, color: theme.textSecondary, fontFamily: fonts.heading }}
-        >
-          Date
-        </Text>
-        <Input
+      {/* To Account — only for transfers */}
+      {form.type === 'transfer' && (
+        <View style={{ paddingHorizontal: 24, marginBottom: 24 }}>
+          <AccountSelector
+            accounts={form.accounts.filter((a) => a.id !== form.accountId)}
+            selected={form.toAccountId}
+            onSelect={form.setToAccountId}
+            label="To Account"
+          />
+        </View>
+      )}
+
+      {/* Date & Time */}
+      <View style={{ paddingHorizontal: 24, marginBottom: 24 }}>
+        <DateTimeInput
           value={form.date}
-          onChangeText={form.setDate}
-          placeholder="YYYY-MM-DD"
-          leftIcon={<Calendar size={20} color={theme.textMuted} />}
-          containerClassName="rounded-xl"
+          onChange={form.setDate}
+          mode="datetime"
+          label="Date & Time"
         />
       </View>
 
       {/* Notes Input */}
-      <View className="px-6 mb-6">
-        <Text
-          className="mb-3"
-          style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5, color: theme.textSecondary, fontFamily: fonts.heading }}
-        >
-          Notes (optional)
-        </Text>
+      <View style={{ paddingHorizontal: 24, marginBottom: 24 }}>
+        <Text style={{ ...labelStyle, marginBottom: 12 }}>Notes (optional)</Text>
         <Input
           value={form.notes}
           onChangeText={form.setNotes}
           placeholder="e.g. Coffee at Starbucks"
           multiline
           leftIcon={<Edit3 size={20} color={theme.textMuted} />}
-          containerClassName="rounded-xl"
         />
       </View>
 
       {/* Error Message */}
       {error ? (
-        <Text
-          className="text-center mb-4 px-6"
-          style={{ fontSize: 14, color: theme.expense, fontFamily: fonts.medium }}
-        >
+        <Text style={{ textAlign: 'center', marginBottom: 16, paddingHorizontal: 24, fontSize: 14, color: theme.expense, fontFamily: fonts.medium }}>
           {error}
         </Text>
       ) : null}
@@ -145,21 +138,13 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
       {/* Save Button */}
       <View style={{ paddingHorizontal: 24, paddingBottom: 36, paddingTop: 8 }}>
         <Button
-          title="Save Transaction"
+          title={form.isEditing ? 'Update Transaction' : 'Save Transaction'}
           onPress={handleSave}
-          loading={form.createMutation.isPending}
+          loading={form.createMutation.isPending || form.updateMutation.isPending}
           size="lg"
-          leftIcon={<Check size={20} color={theme.textOnAccent} strokeWidth={2.5} />}
+          leftIcon={<HugeiconsIcon icon={FloppyDiskIcon} size={20} color={theme.textOnAccent} strokeWidth={3} />}
         />
       </View>
-
-      <AccountPicker
-        visible={accountPickerVisible}
-        onClose={() => setAccountPickerVisible(false)}
-        accounts={form.accounts}
-        selected={form.accountId}
-        onSelect={form.setAccountId}
-      />
     </View>
   );
 }

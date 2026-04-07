@@ -6,9 +6,15 @@ import { AccountRepository } from '@core/repositories/account-repository';
 import { CategoryRepository } from '@core/repositories/category-repository';
 import { queryKeys } from '@core/constants/query-keys';
 import { useCurrencyStore } from '@stores/currency-store';
-import type { TransactionType } from '@core/models';
+import type { Transaction, TransactionType } from '@core/models';
 
-export function useTransactionForm() {
+interface UseTransactionFormOptions {
+  editTransaction?: Transaction;
+}
+
+export function useTransactionForm(options?: UseTransactionFormOptions) {
+  const { editTransaction } = options ?? {};
+  const isEditing = !!editTransaction;
   const db = useDatabase();
   const queryClient = useQueryClient();
   const transactionRepo = useMemo(() => new TransactionRepository(db), [db]);
@@ -16,13 +22,13 @@ export function useTransactionForm() {
   const categoryRepo = useMemo(() => new CategoryRepository(db), [db]);
   const currencyCode = useCurrencyStore((s) => s.currencyCode);
 
-  const [amount, setAmount] = useState('');
-  const [type, setType] = useState<TransactionType>('expense');
-  const [categoryId, setCategoryId] = useState('');
-  const [accountId, setAccountId] = useState('');
-  const [toAccountId, setToAccountId] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [notes, setNotes] = useState('');
+  const [amount, setAmount] = useState(editTransaction ? String(editTransaction.amount) : '');
+  const [type, setType] = useState<TransactionType>(editTransaction?.type ?? 'expense');
+  const [categoryId, setCategoryId] = useState(editTransaction?.category_id ?? '');
+  const [accountId, setAccountId] = useState(editTransaction?.account_id ?? '');
+  const [toAccountId, setToAccountId] = useState(editTransaction?.to_account_id ?? '');
+  const [date, setDate] = useState<Date>(editTransaction ? new Date(editTransaction.date) : new Date());
+  const [notes, setNotes] = useState(editTransaction?.notes ?? '');
 
   const accountsQuery = useQuery({
     queryKey: queryKeys.accounts.all,
@@ -56,7 +62,7 @@ export function useTransactionForm() {
         account_id: accountId,
         to_account_id: type === 'transfer' ? toAccountId || null : null,
         currency_code: currencyCode,
-        date: new Date(date).toISOString(),
+        date: date.toISOString(),
         notes: notes.trim() || null,
         recurring_id: null,
         attachment_path: null,
@@ -81,7 +87,59 @@ export function useTransactionForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.budgets.active });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      if (!editTransaction) throw new Error('No transaction to edit');
+      const parsedAmount = parseFloat(amount);
+      if (!parsedAmount || parsedAmount <= 0) throw new Error('Invalid amount');
+      if (type !== 'transfer' && !categoryId) throw new Error('Select a category');
+      if (!accountId) throw new Error('Select an account');
+
+      const old = editTransaction;
+
+      // Reverse old balance changes
+      if (old.type === 'income') {
+        await accountRepo.updateBalance(old.account_id, -old.amount);
+      } else if (old.type === 'expense') {
+        await accountRepo.updateBalance(old.account_id, old.amount);
+      } else if (old.type === 'transfer') {
+        await accountRepo.updateBalance(old.account_id, old.amount);
+        if (old.to_account_id) {
+          await accountRepo.updateBalance(old.to_account_id, -old.amount);
+        }
+      }
+
+      // Apply new balance changes
+      if (type === 'income') {
+        await accountRepo.updateBalance(accountId, parsedAmount);
+      } else if (type === 'expense') {
+        await accountRepo.updateBalance(accountId, -parsedAmount);
+      } else if (type === 'transfer') {
+        await accountRepo.updateBalance(accountId, -parsedAmount);
+        if (toAccountId) {
+          await accountRepo.updateBalance(toAccountId, parsedAmount);
+        }
+      }
+
+      return transactionRepo.update(old.id, {
+        amount: parsedAmount,
+        type,
+        category_id: categoryId || 'uncategorized',
+        account_id: accountId,
+        to_account_id: type === 'transfer' ? toAccountId || null : null,
+        currency_code: currencyCode,
+        date: date.toISOString(),
+        notes: notes.trim() || null,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
     },
   });
 
@@ -91,7 +149,7 @@ export function useTransactionForm() {
     setCategoryId('');
     setAccountId('');
     setToAccountId('');
-    setDate(new Date().toISOString().split('T')[0]);
+    setDate(new Date());
     setNotes('');
   };
 
@@ -116,6 +174,8 @@ export function useTransactionForm() {
     accounts,
     filteredCategories,
     createMutation,
+    updateMutation,
+    isEditing,
     reset,
   };
 }

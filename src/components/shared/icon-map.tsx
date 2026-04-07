@@ -15,7 +15,7 @@ import {
   FileText, Calendar, Edit3, Download,
   Database, Package, Moon, Check,
   ArrowUpRight, ArrowDownRight, ArrowDownLeft, Inbox, Eye,
-  CircleCheck, Wallet, ArrowLeft,
+  CircleCheck, Wallet, ArrowLeft, HandCoins, Landmark, Banknote,
   type LucideProps,
 } from 'lucide-react-native';
 
@@ -86,6 +86,9 @@ const iconComponents: Record<string, React.FC<LucideProps>> = {
   'check-circle': CircleCheck,
   'wallet': Wallet,
   'arrow-left': ArrowLeft,
+  'hand-coins': HandCoins,
+  'landmark': Landmark,
+  'banknote': Banknote,
 };
 
 export function getIconComponent(name: string): React.FC<LucideProps> {

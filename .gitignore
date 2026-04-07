@@ -39,3 +39,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Large demo video (exceeds GitHub's 100 MB single-file limit; hosted externally)
+Demo/Video/

@@ -1,36 +1,56 @@
 import type { Transaction, Category } from '@core/models';
-import type { TransactionWithCategory, TransactionSection, DateSection } from '../types';
-import { startOfDay, startOfWeek } from '@core/utils/date';
+import type { TransactionWithCategory, TransactionSection } from '../types';
+
+function getSectionKey(date: Date): string {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today.getTime() - 86400000);
+  const txDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+  if (txDay.getTime() === today.getTime()) return 'Today';
+  if (txDay.getTime() === yesterday.getTime()) return 'Yesterday';
+
+  // Same week
+  const dayOfWeek = now.getDay() || 7; // Mon=1
+  const weekStart = new Date(today.getTime() - (dayOfWeek - 1) * 86400000);
+  if (txDay >= weekStart) return 'This Week';
+
+  // Last week
+  const lastWeekStart = new Date(weekStart.getTime() - 7 * 86400000);
+  if (txDay >= lastWeekStart) return 'Last Week';
+
+  // Same year — show month name
+  if (date.getFullYear() === now.getFullYear()) {
+    return date.toLocaleDateString('en', { month: 'long' });
+  }
+
+  // Different year — show month + year
+  return date.toLocaleDateString('en', { month: 'long', year: 'numeric' });
+}
 
 export function groupTransactionsByDate(
   transactions: Transaction[],
   categories: Category[]
 ): TransactionSection[] {
   const catMap = new Map(categories.map((c) => [c.id, c]));
-  const today = startOfDay();
-  const yesterday = startOfDay(new Date(Date.now() - 86400000));
-  const weekStart = startOfWeek();
-
-  const sections: Record<DateSection, TransactionWithCategory[]> = {
-    Today: [],
-    Yesterday: [],
-    'This Week': [],
-    Earlier: [],
-  };
+  const sectionsMap = new Map<string, TransactionWithCategory[]>();
+  const sectionOrder: string[] = [];
 
   for (const tx of transactions) {
     const category = catMap.get(tx.category_id);
     const withCat: TransactionWithCategory = { ...tx, category };
+    const key = getSectionKey(new Date(tx.date));
 
-    if (tx.date >= today) sections['Today'].push(withCat);
-    else if (tx.date >= yesterday) sections['Yesterday'].push(withCat);
-    else if (tx.date >= weekStart) sections['This Week'].push(withCat);
-    else sections['Earlier'].push(withCat);
+    if (!sectionsMap.has(key)) {
+      sectionsMap.set(key, []);
+      sectionOrder.push(key);
+    }
+    sectionsMap.get(key)!.push(withCat);
   }
 
-  return (Object.entries(sections) as [DateSection, TransactionWithCategory[]][])
-    .filter(([, data]) => data.length > 0)
-    .map(([title, data]) => ({ title, data }));
+  return sectionOrder
+    .map((title) => ({ title, data: sectionsMap.get(title)! }))
+    .filter((s) => s.data.length > 0);
 }
 
 export function filterTransactionsBySearch(

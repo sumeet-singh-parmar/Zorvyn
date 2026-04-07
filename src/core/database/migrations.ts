@@ -199,6 +199,32 @@ const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 2,
+    name: 'add_loans_table',
+    up: async (db) => {
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS loans (
+          id              TEXT PRIMARY KEY,
+          person_name     TEXT NOT NULL,
+          amount          REAL NOT NULL,
+          type            TEXT NOT NULL CHECK(type IN ('lending', 'borrowing')),
+          date            TEXT NOT NULL,
+          due_date        TEXT,
+          notes           TEXT,
+          status          TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'paid')),
+          created_at      TEXT NOT NULL,
+          updated_at      TEXT NOT NULL,
+          deleted_at      TEXT,
+          sync_status     TEXT DEFAULT 'pending'
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_loans_type ON loans(type);
+        CREATE INDEX IF NOT EXISTS idx_loans_status ON loans(status);
+        CREATE INDEX IF NOT EXISTS idx_loans_deleted ON loans(deleted_at);
+      `);
+    },
+  },
 ];
 
 export async function runMigrations(db: SQLiteDatabase): Promise<void> {

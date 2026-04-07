@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { CategoryIcon } from '@components/shared/category-icon';
 import { useTheme } from '@theme/use-theme';
 import { fonts } from '@theme/fonts';
@@ -15,7 +15,7 @@ export function CategoryPicker({ categories, selected, onSelect }: CategoryPicke
   const theme = useTheme();
 
   return (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
       {categories.map((cat) => {
         const isSelected = selected === cat.id;
         return (
@@ -27,10 +27,10 @@ export function CategoryPicker({ categories, selected, onSelect }: CategoryPicke
             <View style={{
               flexDirection: 'row',
               alignItems: 'center',
-              paddingVertical: 8,
-              paddingHorizontal: 12,
+              paddingVertical: 12,
+              paddingHorizontal: 18,
               borderRadius: 50,
-              gap: 7,
+              gap: 10,
               backgroundColor: isSelected ? theme.buttonBg : theme.surfaceBg,
               borderWidth: 1,
               borderColor: isSelected ? theme.buttonBg : theme.border,
@@ -41,7 +41,7 @@ export function CategoryPicker({ categories, selected, onSelect }: CategoryPicke
                 size="sm"
               />
               <Text style={{
-                fontSize: 13,
+                fontSize: 15,
                 fontFamily: isSelected ? fonts.heading : fonts.medium,
                 color: isSelected ? theme.textOnAccent : theme.textPrimary,
               }}>

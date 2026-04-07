@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useRef, useState, useMemo } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import {
   BottomSheetModal,
@@ -29,6 +29,9 @@ const GlobalSheetContext = createContext<GlobalSheetContextType>({
 
 export const useGlobalSheet = () => useContext(GlobalSheetContext);
 
+const BottomSheetContext = createContext(false);
+export const useIsInBottomSheet = () => useContext(BottomSheetContext);
+
 export function GlobalSheetProvider({ children }: { children: React.ReactNode }) {
   const theme = useTheme();
   const { hue, saturation } = useThemeStore();
@@ -37,7 +40,6 @@ export function GlobalSheetProvider({ children }: { children: React.ReactNode })
   const pendingRef = useRef(false);
 
   const openSheet = useCallback((cfg: SheetConfig) => {
-    console.log('[Zorvyn] 📄 Opening sheet:', cfg.title);
     pendingRef.current = true;
     setConfig(cfg);
     // If already presented, just update content (no dismiss/present cycle)
@@ -78,10 +80,11 @@ export function GlobalSheetProvider({ children }: { children: React.ReactNode })
       {children}
       <BottomSheetModal
         ref={sheetRef}
-        snapPoints={config?.snapPoints ?? ['50%', '80%']}
+        snapPoints={config?.snapPoints ?? ['50%', '90%']}
         onDismiss={handleDismiss}
         backdropComponent={renderBackdrop}
         enablePanDownToClose
+        enableDynamicSizing={false}
         backgroundStyle={{
           backgroundColor: theme.cardBg,
           borderTopLeftRadius: 28,
@@ -96,9 +99,10 @@ export function GlobalSheetProvider({ children }: { children: React.ReactNode })
         }}
       >
         <BottomSheetScrollView
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+          contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 80 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         >
           {/* Header */}
           {config?.title && (
@@ -112,7 +116,9 @@ export function GlobalSheetProvider({ children }: { children: React.ReactNode })
             </View>
           )}
           {/* Content */}
-          {config?.content}
+          <BottomSheetContext.Provider value={true}>
+            {config?.content}
+          </BottomSheetContext.Provider>
         </BottomSheetScrollView>
       </BottomSheetModal>
     </GlobalSheetContext.Provider>

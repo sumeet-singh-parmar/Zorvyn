@@ -9,6 +9,7 @@ LogBox.ignoreLogs([
   'VirtualizedLists should never be nested',
 ]);
 
+import { Appearance } from 'react-native';
 import { AppProviders } from '@core/providers/app-providers';
 import { EdgeFade } from '@components/shared/edge-fade';
 import { useTheme } from '@theme/use-theme';
@@ -39,7 +40,10 @@ function AppShell() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(onboarding)" />
         <Stack.Screen name="accounts" />
-        {/* budget and goal forms now open via GlobalSheet, not modal routes */}
+        <Stack.Screen name="recurring" />
+        <Stack.Screen name="loans" />
+        <Stack.Screen name="budget/index" />
+        <Stack.Screen name="goal/index" />
       </Stack>
       <EdgeFade />
     </View>
@@ -57,8 +61,10 @@ export default function RootLayout() {
   });
 
   if (!fontsLoaded) {
+    // Hardcoded colors: this renders BEFORE AppProviders mounts, so useTheme() is unavailable here.
+    const isDark = Appearance.getColorScheme() === 'dark';
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1E1915' }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: isDark ? '#1E1915' : '#FAF7F5' }}>
         <ActivityIndicator size="large" color="#B87040" />
       </View>
     );

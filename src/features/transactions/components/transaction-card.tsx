@@ -4,7 +4,7 @@ import { Swipeable } from 'react-native-gesture-handler';
 import { Trash2 } from 'lucide-react-native';
 import { CategoryIcon } from '@components/shared/category-icon';
 import { CurrencyText } from '@components/shared/currency-text';
-import { getRelativeTime } from '@core/utils/date';
+import { formatTime } from '@core/utils/date';
 import { useTheme } from '@theme/use-theme';
 import { fonts } from '@theme/fonts';
 import type { TransactionWithCategory } from '../types';
@@ -30,8 +30,8 @@ export function TransactionCard({ transaction, onPress, onDelete }: TransactionC
     <Swipeable
       renderRightActions={() => (
         <View style={{ backgroundColor: theme.expense, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24, borderRadius: 16, marginRight: 16 }}>
-          <Trash2 size={18} color="#FFFFFF" />
-          <Text style={{ color: '#FFFFFF', fontSize: 11, fontFamily: fonts.semibold, marginTop: 4 }}>Delete</Text>
+          <Trash2 size={18} color={theme.textOnAccent} />
+          <Text style={{ color: theme.textOnAccent, fontSize: 11, fontFamily: fonts.semibold, marginTop: 4 }}>Delete</Text>
         </View>
       )}
       onSwipeableOpen={(direction) => {
@@ -58,7 +58,7 @@ export function TransactionCard({ transaction, onPress, onDelete }: TransactionC
                 </Text>
                 <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: theme.textMuted, marginHorizontal: 6, opacity: 0.5 }} />
                 <Text style={{ fontSize: 13, fontFamily: fonts.body, color: theme.textMuted }}>
-                  {getRelativeTime(transaction.date)}
+                  {formatTime(transaction.date)}
                 </Text>
               </View>
             </View>

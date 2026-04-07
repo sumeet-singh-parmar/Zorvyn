@@ -21,6 +21,14 @@ export const useAppStore = create<AppState>()(
     {
       name: 'app-store',
       storage: createJSONStorage(() => mmkvStateStorage),
+      version: 1,
+      migrate: (persisted: unknown, version: number) => {
+        const state = persisted as Record<string, unknown>;
+        if (version === 0) {
+          return { ...state, theme: 'system' } as AppState;
+        }
+        return state as unknown as AppState;
+      },
     }
   )
 );
